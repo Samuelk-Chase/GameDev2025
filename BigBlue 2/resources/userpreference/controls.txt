@@ -1,0 +1,3 @@
+Rotate Right:262
+Rotate Left:263
+Thrust:265
