@@ -11,4 +11,5 @@ public class Entity {
     public int getId() {
         return id;
     }
+
 }

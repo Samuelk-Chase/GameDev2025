@@ -1,5 +1,7 @@
 package entities;
 import components.Component;
+import components.NameComponent;
+
 import java.util.*;
 
 public class EntityManager {
@@ -66,5 +68,9 @@ public class EntityManager {
     public void clear() {
         entityComponents.clear();
         componentMap.clear();
+    }
+    public String getEntityName(int entityId) {
+        NameComponent nameComp = getComponent(entityId, NameComponent.class);
+        return nameComp != null ? nameComp.name : null;
     }
 }

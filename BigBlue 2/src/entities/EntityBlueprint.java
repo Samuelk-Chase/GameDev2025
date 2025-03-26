@@ -1,13 +1,13 @@
 package entities;
 
 public class EntityBlueprint {
-    public String spritePath;
-    public boolean isText; // For rule layer text elements
-    public String ruleProperty; // Optional, for rule logic
+    public final String spritePath;
+    public final boolean isText;
+    public final String word; // <-- 🔥 make sure this exists
 
-    public EntityBlueprint(String spritePath, boolean isText, String ruleProperty) {
+    public EntityBlueprint(String spritePath, boolean isText, String word) {
         this.spritePath = spritePath;
         this.isText = isText;
-        this.ruleProperty = ruleProperty;
+        this.word = word;
     }
 }
