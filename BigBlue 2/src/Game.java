@@ -1,4 +1,3 @@
-
 import components.NameComponent;
 import components.PositionComponent;
 import components.RuleComponent;
@@ -10,6 +9,7 @@ import edu.usu.graphics.Texture;
 import entities.EntityBlueprint;
 import entities.EntityManager;
 import systems.Animation;
+import systems.ConditionSystem;
 import systems.MovementSystem;
 import systems.RuleSystem;
 import util.ParseLevel;
@@ -32,6 +32,7 @@ public class Game {
     private final Set<Integer> keysPressedLastFrame = new HashSet<>();
     private RuleSystem ruleSystem;
     private MovementSystem movementSystem;
+    private ConditionSystem conditionSystem;
 
     public Game(Graphics2D graphics) {
         this.graphics = graphics;
@@ -61,13 +62,21 @@ public class Game {
         this.currentLevel = level;
         entityManager.clear();
         loadLevelEntities();
+        this.conditionSystem = new ConditionSystem(entityManager, ruleSystem, bigBlueEntityId);
     }
 
-    public void loadNextLevel() {
-        if (currentLevelIndex < levels.size() - 1) {
-            currentLevelIndex++;
+    private void loadNextLevel() {
+        currentLevelIndex++;
+        if (currentLevelIndex < levels.size()) {
             setLevel(levels.get(currentLevelIndex));
+        } else {
+            System.out.println("Game Completed!");
+            running = false; // Optionally stop the game
         }
+    }
+
+    private void resetLevel() {
+        setLevel(levels.get(currentLevelIndex));
     }
 
     private void loadLevelEntities() {
@@ -168,32 +177,6 @@ public class Game {
         charMap.put('K', new EntityBlueprint("word-kill.png", true, "Kill"));
     }
 
-    private boolean isBlocked(int x, int y) {
-        if (x < 0 || y < 0 || x >= currentLevel.width || y >= currentLevel.height) return true;
-
-        for (int entityId : entityManager.getAllEntityIds()) {
-            PositionComponent pos = entityManager.getComponent(entityId, PositionComponent.class);
-            NameComponent name = entityManager.getComponent(entityId, NameComponent.class);
-            if (pos != null && name != null && pos.x == x && pos.y == y) {
-                if (name.name.equals("Hedge")) return true;
-                Set<String> props = ruleSystem.activeRules.get(name.name);
-                if (props != null && props.contains("Stop")) return true;
-            }
-        }
-
-        return false;
-    }
-    private int getEntityAt(int x, int y) {
-        for (int id : entityManager.getAllEntityIds()) {
-            PositionComponent pos = entityManager.getComponent(id, PositionComponent.class);
-            RuleComponent rule = entityManager.getComponent(id, RuleComponent.class);
-            if (pos != null && rule == null && pos.x == x && pos.y == y) { // Only gameplay entities
-                return id;
-            }
-        }
-        return -1;
-    }
-
     private void tryMoveBigBlue(int dx, int dy) {
         if (bigBlueEntityId == null) return;
         PositionComponent pos = entityManager.getComponent(bigBlueEntityId, PositionComponent.class);
@@ -204,9 +187,24 @@ public class Game {
 
         Set<String> pushableNames = getNamesWithProperty("Push");
 
-        if (movementSystem.tryMove(pos.x, pos.y, dx, dy, pushableNames)) {
+        if (movementSystem.tryMove(pos.x, pos.y, dx, dy, pushableNames, bigBlueEntityId)) {
             pos.x = targetX;
             pos.y = targetY;
+            movementSystem.checkAndApplySink(targetX, targetY);
+            if (entityManager.getComponent(bigBlueEntityId, PositionComponent.class) == null) {
+                System.out.println("Big Blue Sunk!");
+                resetLevel();
+            } else {
+                ruleSystem.update();
+                int condition = conditionSystem.checkConditions();
+                if (condition == 1) {
+                    System.out.println("Victory!");
+                    loadNextLevel();
+                } else if (condition == -1) {
+                    System.out.println("Death!");
+                    resetLevel();
+                }
+            }
         }
     }
     private Set<String> getNamesWithProperty(String property) {
@@ -215,7 +213,7 @@ public class Game {
             if (entry.getValue().contains(property)) {
                 result.add(entry.getKey());
             }
-            }
+        }
         return result;
     }
 
@@ -249,9 +247,9 @@ public class Game {
             PositionComponent pos = entityManager.getComponent(bigBlueEntityId, PositionComponent.class);
             if (pos != null) {
                 handleKeyOnce(GLFW_KEY_RIGHT, () -> tryMoveBigBlue(1, 0));
-                handleKeyOnce(GLFW_KEY_LEFT,  () -> tryMoveBigBlue(-1, 0));
-                handleKeyOnce(GLFW_KEY_UP,    () -> tryMoveBigBlue(0, -1));
-                handleKeyOnce(GLFW_KEY_DOWN,  () -> tryMoveBigBlue(0, 1));
+                handleKeyOnce(GLFW_KEY_LEFT, () -> tryMoveBigBlue(-1, 0));
+                handleKeyOnce(GLFW_KEY_UP, () -> tryMoveBigBlue(0, -1));
+                handleKeyOnce(GLFW_KEY_DOWN, () -> tryMoveBigBlue(0, 1));
             }
         }
 
@@ -262,7 +260,8 @@ public class Game {
             }
         }
     }
-        private void handleKeyOnce(int key, Runnable action) {
+
+    private void handleKeyOnce(int key, Runnable action) {
         boolean isDownNow = glfwGetKey(graphics.getWindow(), key) == GLFW_PRESS;
         boolean wasDownLastFrame = keysPressedLastFrame.contains(key);
         if (isDownNow && !wasDownLastFrame) {
@@ -277,32 +276,33 @@ public class Game {
                 sprite.update();
             }
         }
-        ruleSystem.update();
     }
-
     protected void draw() {
         graphics.begin();
         if (currentLevel == null) {
             graphics.end();
-            return;
+            return; // Prevent null pointer if no level is loaded
         }
-
-        float gridLeft = -0.8f;
-        float gridBottom = -0.8f;
-        float gridWidth = 1.6f;
-        float gridHeight = 1.6f;
+        // Define grid and tile sizes (adjust these values as needed)
+        float gridLeft = -0.8f;   // Left edge of the grid in NDC
+        float gridBottom = -0.8f; // Bottom edge of the grid in NDC
+        float gridWidth = 1.6f;   // Total width in NDC (from -0.8 to 0.8 is 1.6)
+        float gridHeight = 1.6f;  // Total height in NDC
         float tileWidth = gridWidth / currentLevel.width;
         float tileHeight = gridHeight / currentLevel.height;
 
         for (int entityId : entityManager.getAllEntityIds()) {
-            PositionComponent pos = entityManager.getComponent(entityId, PositionComponent.class);
-            SpriteComponent sprite = entityManager.getComponent(entityId, SpriteComponent.class);
-            if (pos != null && sprite != null) {
-                float ndcX = gridLeft + pos.x * tileWidth;
-                float ndcY = gridBottom + pos.y * tileHeight;
-                Rectangle destinationRect = new Rectangle(ndcX, ndcY, tileWidth, tileHeight);
-                Color tint = textureTints.getOrDefault(sprite.getTexturePath(), Color.WHITE);
-                graphics.draw(sprite.getTexture(), destinationRect, tint);
+            if (entityManager.isEntityActive(entityId)) {
+                PositionComponent pos = entityManager.getComponent(entityId, PositionComponent.class);
+                SpriteComponent sprite = entityManager.getComponent(entityId, SpriteComponent.class);
+                if (pos != null && sprite != null) {
+                    float ndcX = gridLeft + pos.x * tileWidth;
+                    float ndcY = gridBottom + pos.y * tileHeight;
+                    Rectangle destinationRect = new Rectangle(ndcX, ndcY, tileWidth, tileHeight);
+                    // Get the tint from the map, default to white if not found
+                    Color tint = textureTints.getOrDefault(sprite.getTexturePath(), Color.WHITE);
+                    graphics.draw(sprite.getTexture(), destinationRect, tint);
+                }
             }
         }
         graphics.end();
