@@ -8,8 +8,7 @@ import java.util.*;
 
 public class RuleSystem {
     private final EntityManager entityManager;
-
-    public Map<String, Set<String>> activeRules = new HashMap<>(); // e.g., "Wall" -> ["Stop"]
+    public static Map<String, Set<String>> activeRules = new HashMap<>(); // e.g., "Wall" -> ["Stop"]
 
     public RuleSystem(EntityManager entityManager) {
         this.entityManager = entityManager;
@@ -60,4 +59,5 @@ public class RuleSystem {
         }
         return null;
     }
+
 }

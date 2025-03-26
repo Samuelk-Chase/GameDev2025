@@ -73,4 +73,5 @@ public class EntityManager {
         NameComponent nameComp = getComponent(entityId, NameComponent.class);
         return nameComp != null ? nameComp.name : null;
     }
+
 }
