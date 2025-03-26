@@ -5,7 +5,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
-public class Animation {
+public class Animation implements Cloneable {
     private Texture[] frames;
     private int currentFrame = 0;
     private long frameDelay;
@@ -48,5 +48,17 @@ public class Animation {
 
     public Texture getCurrentTexture() {
         return frames[currentFrame];
+    }
+
+    @Override
+    public Animation clone() {
+        try {
+            Animation clone = (Animation) super.clone();
+            // Shallow copy is fine for frames and tempDir since Texture is immutable/shared
+            // Primitive fields (currentFrame, frameDelay, lastFrameTime) are copied by Object.clone()
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException("Cloning not supported", e);
+        }
     }
 }

@@ -13,23 +13,20 @@ public class MovementSystem {
         this.entityManager = entityManager;
     }
 
-    /**
-     * Attempts to move from start position in the given direction.
-     * Returns true if the move is possible (no blockers and pushing succeeds).
-     */
-    public boolean tryMove(int startX, int startY, int dx, int dy, Set<String> pushableNames, Integer bigBlueEntityId) {
+    public boolean tryMove(int startX, int startY, int dx, int dy, Set<String> pushableNames) {
         int targetX = startX + dx;
         int targetY = startY + dy;
 
         List<Integer> entitiesAtTarget = getEntitiesAt(targetX, targetY);
 
-        // Check for blocking entities (Stop and not Pushable, or Hedge)
+        // Check for blocking entities
         for (int id : entitiesAtTarget) {
             String name = entityManager.getEntityName(id);
             if (name.equals("Hedge")) {
                 return false;
             }
-            if (entityManager.getComponent(id, RuleComponent.class) == null) {
+            RuleComponent ruleComp = entityManager.getComponent(id, RuleComponent.class);
+            if (ruleComp == null) { // Only check "Stop" for non-text entities
                 Set<String> props = RuleSystem.activeRules.get(name);
                 if (props != null && props.contains("Stop") && !pushableNames.contains(name)) {
                     return false;
@@ -37,10 +34,10 @@ public class MovementSystem {
             }
         }
 
-        // Try to push all pushable entities
+        // Try to push all pushable entities (text entities are always pushable)
         for (int id : entitiesAtTarget) {
             if (isPushable(id, pushableNames)) {
-                if (!tryPush(id, dx, dy, pushableNames, bigBlueEntityId, 0)) {
+                if (!tryPush(id, dx, dy, pushableNames, 0)) {
                     return false;
                 }
             }
@@ -49,19 +46,14 @@ public class MovementSystem {
         return true;
     }
 
-    /**
-     * Attempts to push an entity in the given direction.
-     * Returns true if the push succeeds.
-     */
-    private boolean tryPush(int entityId, int dx, int dy, Set<String> pushableNames, Integer bigBlueEntityId, int depth) {
-        if (depth > 5) return false; // Prevent infinite recursion
+    private boolean tryPush(int entityId, int dx, int dy, Set<String> pushableNames, int depth) {
+        if (depth > 5) return false;
 
         PositionComponent pos = entityManager.getComponent(entityId, PositionComponent.class);
         if (pos == null) return false;
 
         int nextX = pos.x + dx;
         int nextY = pos.y + dy;
-        System.out.println("Moved entity " + entityId + " to (" + nextX + ", " + nextY + ")");
         List<Integer> entitiesAtNext = getEntitiesAt(nextX, nextY);
 
         // Check for blockers
@@ -71,7 +63,8 @@ public class MovementSystem {
             if (name.equals("Hedge")) {
                 return false;
             }
-            if (entityManager.getComponent(id, RuleComponent.class) == null) {
+            RuleComponent ruleComp = entityManager.getComponent(id, RuleComponent.class);
+            if (ruleComp == null) { // Only check "Stop" for non-text entities
                 Set<String> props = RuleSystem.activeRules.get(name);
                 if (props != null && props.contains("Stop") && !pushableNames.contains(name)) {
                     return false;
@@ -79,11 +72,11 @@ public class MovementSystem {
             }
         }
 
-        // Try to push all pushable entities at the next position
+        // Push other pushable entities
         for (int id : entitiesAtNext) {
             if (id == entityId) continue;
             if (isPushable(id, pushableNames)) {
-                if (!tryPush(id, dx, dy, pushableNames, bigBlueEntityId, depth + 1)) {
+                if (!tryPush(id, dx, dy, pushableNames, depth + 1)) {
                     return false;
                 }
             }
@@ -93,51 +86,12 @@ public class MovementSystem {
         pos.x = nextX;
         pos.y = nextY;
 
-        // Check and apply "Sink" condition
+        // Check for sink condition
         checkAndApplySink(nextX, nextY);
 
         return true;
     }
 
-    /**
-     * Checks if the position has multiple entities and if any have "Sink".
-     * If so, destroys all entities at that position.
-     */
-    public void checkAndApplySink(int x, int y) {
-        List<Integer> entitiesAtPos = getEntitiesAt(x, y); // Get all entities at this position
-        if (entitiesAtPos.size() >= 2) { // Check if multiple entities overlap
-            boolean hasSink = false;
-            for (int id : entitiesAtPos) {
-                String name = entityManager.getEntityName(id);
-                Set<String> props = RuleSystem.activeRules.get(name);
-                if (props != null && props.contains("Sink")) {
-                    hasSink = true;
-                    break;
-                }
-            }
-            if (hasSink) {
-                System.out.println("Sink at (" + x + ", " + y + "): Destroying " + entitiesAtPos);
-                for (int id : entitiesAtPos) {
-                    entityManager.destroyEntity(id); // Destroy each entity
-                }
-            }
-        }
-    }
-
-    /**
-     * Determines if an entity is pushable.
-     */
-    private boolean isPushable(int id, Set<String> pushableNames) {
-        if (entityManager.getComponent(id, RuleComponent.class) != null) {
-            return true; // Word entities are always pushable
-        }
-        String name = entityManager.getEntityName(id);
-        return pushableNames.contains(name); // Gameplay entities with "Push"
-    }
-
-    /**
-     * Gets all entities at a specific position.
-     */
     private List<Integer> getEntitiesAt(int x, int y) {
         List<Integer> entities = new ArrayList<>();
         for (int id : entityManager.getAllEntityIds()) {
@@ -147,5 +101,33 @@ public class MovementSystem {
             }
         }
         return entities;
+    }
+
+    private boolean isPushable(int entityId, Set<String> pushableNames) {
+        // Text entities (with RuleComponent) are always pushable
+        if (entityManager.getComponent(entityId, RuleComponent.class) != null) {
+            return true;
+        }
+        // Non-text entities depend on the "Push" property
+        String name = entityManager.getEntityName(entityId);
+        return pushableNames.contains(name);
+    }
+
+    public void checkAndApplySink(int x, int y) {
+        List<Integer> entities = getEntitiesAt(x, y);
+        boolean hasSink = false;
+        for (int id : entities) {
+            String name = entityManager.getEntityName(id);
+            Set<String> props = RuleSystem.activeRules.getOrDefault(name, new HashSet<>());
+            if (props.contains("Sink")) {
+                hasSink = true;
+                break;
+            }
+        }
+        if (hasSink) {
+            for (int id : new ArrayList<>(entities)) {
+                entityManager.destroyEntity(id);
+            }
+        }
     }
 }

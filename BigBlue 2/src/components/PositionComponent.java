@@ -1,6 +1,6 @@
 package components;
 
-public class PositionComponent implements Component {
+public class PositionComponent extends Component {
     public int x;
     public int y;
 
@@ -9,11 +9,11 @@ public class PositionComponent implements Component {
         this.y = y;
     }
 
-    public void setPosition(int x, int y) {
-        this.x = x;
-        this.y = y;
-    }
 
+    @Override
+    public PositionComponent clone() {
+        return new PositionComponent(x, y);
+    }
     public int getX() {
         return x;
     }

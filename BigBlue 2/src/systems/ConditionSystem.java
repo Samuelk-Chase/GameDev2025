@@ -1,69 +1,56 @@
 package systems;
 
-import components.PositionComponent;
+import components.RuleComponent;
 import entities.EntityManager;
-import systems.RuleSystem;
+import components.NameComponent;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class ConditionSystem {
     private final EntityManager entityManager;
     private final RuleSystem ruleSystem;
-    private final Integer bigBlueEntityId;
 
-    public ConditionSystem(EntityManager entityManager, RuleSystem ruleSystem, Integer bigBlueEntityId) {
+    public ConditionSystem(EntityManager entityManager, RuleSystem ruleSystem) {
         this.entityManager = entityManager;
         this.ruleSystem = ruleSystem;
-        this.bigBlueEntityId = bigBlueEntityId;
     }
 
     /**
-     * Checks if victory or death conditions are met.
-     * Returns:
-     * - 1 if victory condition is met
-     * - -1 if death condition is met
-     * - 0 otherwise
+     * Checks win and lose conditions.
+     * Returns 1 for win, -1 for lose, 0 for continue.
      */
     public int checkConditions() {
-        if (bigBlueEntityId == null) return 0;
-
-        PositionComponent bigBluePos = entityManager.getComponent(bigBlueEntityId, PositionComponent.class);
-        if (bigBluePos == null) return 0;
-
-        int x = bigBluePos.x;
-        int y = bigBluePos.y;
-
-        List<Integer> entitiesAtPos = getEntitiesAt(x, y);
-
-        for (int id : entitiesAtPos) {
-            if (id == bigBlueEntityId) continue; // Skip Big Blue itself
-
-            String name = entityManager.getEntityName(id);
-            Set<String> props = ruleSystem.activeRules.get(name);
-
-            if (props != null) {
-                if (props.contains("Win")) {
-                    return 1; // Victory
-                }
-                if (props.contains("Kill")) {
-                    return -1; // Death
-                }
-            }
+        Set<Integer> youEntities = getYouEntities();
+        if (youEntities.isEmpty()) {
+            return -1; // Lose condition: no "You" entities remain
         }
 
-        return 0; // No condition met
+        for (int id : youEntities) {
+            String name = entityManager.getEntityName(id);
+            Set<String> props = ruleSystem.activeRules.getOrDefault(name, new HashSet<>());
+            if (props.contains("Win")) {
+                return 1; // Win condition: a "You" entity has "Win"
+            }
+        }
+        return 0; // Game continues
     }
 
-    private List<Integer> getEntitiesAt(int x, int y) {
-        List<Integer> entities = new ArrayList<>();
-        for (int id : entityManager.getAllEntityIds()) {
-            PositionComponent pos = entityManager.getComponent(id, PositionComponent.class);
-            if (pos != null && pos.x == x && pos.y == y) {
-                entities.add(id);
+    /**
+     * Retrieves all entities with the "You" property.
+     */
+    public Set<Integer> getYouEntities() {
+        Set<Integer> youEntities = new HashSet<>();
+        for (String name : ruleSystem.activeRules.keySet()) {
+            if (ruleSystem.activeRules.get(name).contains("You")) {
+                for (int id : entityManager.getAllEntityIds()) {
+                    NameComponent nameComp = entityManager.getComponent(id, NameComponent.class);
+                    RuleComponent ruleComp = entityManager.getComponent(id, RuleComponent.class);
+                    if (nameComp != null && nameComp.name.equals(name) && ruleComp == null) {
+                        youEntities.add(id);
+                    }
+                }
             }
         }
-        return entities;
+        return youEntities;
     }
 }

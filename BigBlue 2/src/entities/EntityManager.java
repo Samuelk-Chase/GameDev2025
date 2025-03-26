@@ -2,7 +2,6 @@ package entities;
 
 import components.Component;
 import components.NameComponent;
-
 import java.util.*;
 
 public class EntityManager {
@@ -15,15 +14,14 @@ public class EntityManager {
         int id = nextEntityId++;
         entityComponents.put(id, new ArrayList<>());
         componentMap.put(id, new HashMap<>());
-        allEntityIds.add(id); // Track the new entity
+        allEntityIds.add(id);
         return id;
     }
 
     public void destroyEntity(int entityId) {
-        System.out.println("Destroying entity: " + entityId); // Debug log
-        componentMap.remove(entityId); // Remove all components for this entity
-        entityComponents.remove(entityId); // Remove from entityComponents
-        allEntityIds.remove(entityId); // Remove from active entities
+        componentMap.remove(entityId);
+        entityComponents.remove(entityId);
+        allEntityIds.remove(entityId);
     }
 
     public void addComponent(int entityId, Component component) {
@@ -43,12 +41,24 @@ public class EntityManager {
         return componentClass.cast(component);
     }
 
-    public List<Component> getAllComponents(int entityId) {
-        return entityComponents.getOrDefault(entityId, Collections.emptyList());
+    public void restoreState(GameState state) {
+        this.entityComponents.clear();
+        this.entityComponents.putAll(state.getEntityComponents());
+        this.allEntityIds.clear();
+        this.allEntityIds.addAll(state.getAllEntityIds());
+        this.componentMap.clear();
+        for (Map.Entry<Integer, List<Component>> entry : entityComponents.entrySet()) {
+            int entityId = entry.getKey();
+            Map<Class<?>, Component> compMap = new HashMap<>();
+            for (Component comp : entry.getValue()) {
+                compMap.put(comp.getClass(), comp);
+            }
+            componentMap.put(entityId, compMap);
+        }
     }
 
     public Set<Integer> getAllEntityIds() {
-        return new HashSet<>(allEntityIds); // Return a copy to prevent external modification
+        return new HashSet<>(allEntityIds);
     }
 
     public boolean isEntityActive(int entityId) {
@@ -64,5 +74,9 @@ public class EntityManager {
         entityComponents.clear();
         componentMap.clear();
         allEntityIds.clear();
+    }
+
+    public entities.GameState saveState() {
+        return new entities.GameState(entityComponents, allEntityIds);
     }
 }

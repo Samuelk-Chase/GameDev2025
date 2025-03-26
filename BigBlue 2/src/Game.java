@@ -8,6 +8,7 @@ import edu.usu.graphics.Rectangle;
 import edu.usu.graphics.Texture;
 import entities.EntityBlueprint;
 import entities.EntityManager;
+import entities.GameState;
 import systems.Animation;
 import systems.ConditionSystem;
 import systems.MovementSystem;
@@ -28,26 +29,30 @@ public class Game {
     private boolean running = true;
     private long lastTime;
     private final Map<String, Color> textureTints = new HashMap<>();
-    private Integer bigBlueEntityId = null;
     private final Set<Integer> keysPressedLastFrame = new HashSet<>();
     private RuleSystem ruleSystem;
     private MovementSystem movementSystem;
     private ConditionSystem conditionSystem;
+    private final Stack<GameState> undoStack = new Stack<>();
 
+    // Constructor
     public Game(Graphics2D graphics) {
         this.graphics = graphics;
         this.entityManager = new EntityManager();
         this.charMap = new HashMap<>();
         this.ruleSystem = new RuleSystem(entityManager);
         this.movementSystem = new MovementSystem(entityManager);
+        this.conditionSystem = new ConditionSystem(entityManager, ruleSystem);
         initializeCharMap();
         initializeTextureTints();
     }
 
+    // Initialize the game
     public void initialize() {
         loadLevels();
     }
 
+    // Load all levels from file
     private void loadLevels() {
         ParseLevel parser = new ParseLevel();
         levels = parser.parseLevels("resources/levels/levels-all.bbiy");
@@ -58,27 +63,31 @@ public class Game {
         }
     }
 
+    // Set the current level and load its entities
     public void setLevel(ParseLevel.LevelData level) {
         this.currentLevel = level;
         entityManager.clear();
         loadLevelEntities();
-        this.conditionSystem = new ConditionSystem(entityManager, ruleSystem, bigBlueEntityId);
+        ruleSystem.update();
     }
 
+    // Load the next level
     private void loadNextLevel() {
         currentLevelIndex++;
         if (currentLevelIndex < levels.size()) {
             setLevel(levels.get(currentLevelIndex));
         } else {
             System.out.println("Game Completed!");
-            running = false; // Optionally stop the game
+            running = false;
         }
     }
 
+    // Reset the current level
     private void resetLevel() {
         setLevel(levels.get(currentLevelIndex));
     }
 
+    // Load entities from the level data
     private void loadLevelEntities() {
         for (int y = 0; y < currentLevel.height; y++) {
             for (int x = 0; x < currentLevel.width; x++) {
@@ -94,6 +103,7 @@ public class Game {
         }
     }
 
+    // Create an entity based on a character from the level map
     private void createEntityFromChar(char c, int x, int y, boolean isRuleLayer) {
         EntityBlueprint blueprint = charMap.get(c);
         if (blueprint != null) {
@@ -101,15 +111,12 @@ public class Game {
             entityManager.addComponent(entityId, new PositionComponent(x, y));
             String fullPath = "resources/images/" + blueprint.spritePath;
 
+            // Sprite loading logic remains the same
             try {
-                if (c == 'b') {
+                if (c == 'b' || c == 'B') {
                     Texture texture = new Texture(fullPath);
                     SpriteComponent sprite = new SpriteComponent(texture, blueprint.spritePath);
                     entityManager.addComponent(entityId, sprite);
-                    bigBlueEntityId = entityId;
-                } else if (c == 'B') {
-                    Texture texture = new Texture(fullPath);
-                    entityManager.addComponent(entityId, new SpriteComponent(texture, blueprint.spritePath));
                 } else {
                     Animation animation = new Animation(fullPath, 3, 200);
                     entityManager.addComponent(entityId, new SpriteComponent(animation, blueprint.spritePath));
@@ -137,10 +144,12 @@ public class Game {
                         type = RuleComponent.Type.SUBJECT; break;
                 }
                 entityManager.addComponent(entityId, new RuleComponent(blueprint.word, type));
+                ruleSystem.activeRules.computeIfAbsent(blueprint.word, k -> new HashSet<>()).add("Push");
             }
         }
     }
 
+    // Initialize texture tints for rendering
     private void initializeTextureTints() {
         textureTints.put("hedge.png", new Color(0.0f, 0.6f, 0.0f));
         textureTints.put("wall.png", new Color(0.4f, 0.3f, 0.2f));
@@ -151,6 +160,7 @@ public class Game {
         textureTints.put("lava.png", new Color(1.0f, 0.5f, 0.0f));
     }
 
+    // Initialize the character-to-entity mapping
     private void initializeCharMap() {
         charMap.put('h', new EntityBlueprint("hedge.png", false, "Hedge"));
         charMap.put('w', new EntityBlueprint("wall.png", false, "Wall"));
@@ -177,36 +187,68 @@ public class Game {
         charMap.put('K', new EntityBlueprint("word-kill.png", true, "Kill"));
     }
 
-    private void tryMoveBigBlue(int dx, int dy) {
-        if (bigBlueEntityId == null) return;
-        PositionComponent pos = entityManager.getComponent(bigBlueEntityId, PositionComponent.class);
-        if (pos == null) return;
+    // Handle movement for all "you" entities
+    private void handleMovement(int dx, int dy) {
+        Set<Integer> youEntities = conditionSystem.getYouEntities();
+        if (youEntities.isEmpty()) return;
+        for (int id : youEntities) {
+            String name = entityManager.getEntityName(id);
+            Set<String> props = ruleSystem.activeRules.getOrDefault(name, new HashSet<>());
+            System.out.println("You entity " + name + " has properties: " + props);
+        }
+        System.out.println("Active rules: " + ruleSystem.activeRules);
+        // Save the current state for undo
+        GameState currentState = entityManager.saveState();
+        undoStack.push(currentState);
+
+        boolean anyMoved = false;
+        // Sort entities for consistent processing order
+        List<Integer> youEntitiesList = new ArrayList<>(youEntities);
+        Collections.sort(youEntitiesList);
+
+        for (int id : youEntitiesList) {
+            if (entityManager.isEntityActive(id)) {
+                if (tryMoveEntity(id, dx, dy)) {
+                    anyMoved = true;
+                }
+            }
+        }
+
+        if (anyMoved) {
+            ruleSystem.update(); // Update rules after movement
+            int condition = conditionSystem.checkConditions();
+            if (condition == 1) {
+                System.out.println("Victory!");
+                loadNextLevel();
+            } else if (condition == -1) {
+                System.out.println("Death!");
+                resetLevel();
+            }
+        } else {
+            undoStack.pop(); // No movement occurred, discard state
+        }
+    }
+
+    // Attempt to move a single entity
+    private boolean tryMoveEntity(int entityId, int dx, int dy) {
+        PositionComponent pos = entityManager.getComponent(entityId, PositionComponent.class);
+        if (pos == null) return false;
 
         int targetX = pos.x + dx;
         int targetY = pos.y + dy;
 
         Set<String> pushableNames = getNamesWithProperty("Push");
 
-        if (movementSystem.tryMove(pos.x, pos.y, dx, dy, pushableNames, bigBlueEntityId)) {
+        if (movementSystem.tryMove(pos.x, pos.y, dx, dy, pushableNames)) {
             pos.x = targetX;
             pos.y = targetY;
             movementSystem.checkAndApplySink(targetX, targetY);
-            if (entityManager.getComponent(bigBlueEntityId, PositionComponent.class) == null) {
-                System.out.println("Big Blue Sunk!");
-                resetLevel();
-            } else {
-                ruleSystem.update();
-                int condition = conditionSystem.checkConditions();
-                if (condition == 1) {
-                    System.out.println("Victory!");
-                    loadNextLevel();
-                } else if (condition == -1) {
-                    System.out.println("Death!");
-                    resetLevel();
-                }
-            }
+            return true;
         }
+        return false;
     }
+
+    // Get names of entities with a specific property
     private Set<String> getNamesWithProperty(String property) {
         Set<String> result = new HashSet<>();
         for (Map.Entry<String, Set<String>> entry : ruleSystem.activeRules.entrySet()) {
@@ -217,6 +259,7 @@ public class Game {
         return result;
     }
 
+    // Main game loop
     public void run() {
         final double targetFPS = 60.0;
         final double timePerFrame = 1.0 / targetFPS;
@@ -236,6 +279,16 @@ public class Game {
         shutdown();
     }
 
+    // Undo the last move
+    private void undo() {
+        if (!undoStack.isEmpty()) {
+            GameState previousState = undoStack.pop();
+            entityManager.restoreState(previousState);
+            ruleSystem.update();
+        }
+    }
+
+    // Process user input
     protected void processInput(double dt) {
         glfwPollEvents();
 
@@ -243,32 +296,34 @@ public class Game {
             running = false;
         }
 
-        if (bigBlueEntityId != null) {
-            PositionComponent pos = entityManager.getComponent(bigBlueEntityId, PositionComponent.class);
-            if (pos != null) {
-                handleKeyOnce(GLFW_KEY_RIGHT, () -> tryMoveBigBlue(1, 0));
-                handleKeyOnce(GLFW_KEY_LEFT, () -> tryMoveBigBlue(-1, 0));
-                handleKeyOnce(GLFW_KEY_UP, () -> tryMoveBigBlue(0, -1));
-                handleKeyOnce(GLFW_KEY_DOWN, () -> tryMoveBigBlue(0, 1));
-            }
-        }
+        handleKeyOnce(GLFW_KEY_RIGHT, () -> handleMovement(1, 0));
+        handleKeyOnce(GLFW_KEY_LEFT, () -> handleMovement(-1, 0));
+        handleKeyOnce(GLFW_KEY_UP, () -> handleMovement(0, -1));
+        handleKeyOnce(GLFW_KEY_DOWN, () -> handleMovement(0, 1));
+        handleKeyOnce(GLFW_KEY_Z, this::undo);
+        handleKeyOnce(GLFW_KEY_R, this::resetLevel);
 
         keysPressedLastFrame.clear();
-        for (int key : new int[]{GLFW_KEY_RIGHT, GLFW_KEY_LEFT, GLFW_KEY_UP, GLFW_KEY_DOWN}) {
+        int[] keys = {GLFW_KEY_RIGHT, GLFW_KEY_LEFT, GLFW_KEY_UP, GLFW_KEY_DOWN, GLFW_KEY_Z, GLFW_KEY_R};
+        for (int key : keys) {
             if (glfwGetKey(graphics.getWindow(), key) == GLFW_PRESS) {
                 keysPressedLastFrame.add(key);
             }
         }
     }
 
+    // Handle key presses with single-action triggering
     private void handleKeyOnce(int key, Runnable action) {
         boolean isDownNow = glfwGetKey(graphics.getWindow(), key) == GLFW_PRESS;
         boolean wasDownLastFrame = keysPressedLastFrame.contains(key);
         if (isDownNow && !wasDownLastFrame) {
+            System.out.println("Key pressed: " + key); // Debug line
             action.run();
         }
+        keysPressedLastFrame.add(key);
     }
 
+    // Update game state
     protected void update(double dt) {
         for (int entityId : entityManager.getAllEntityIds()) {
             SpriteComponent sprite = entityManager.getComponent(entityId, SpriteComponent.class);
@@ -277,17 +332,18 @@ public class Game {
             }
         }
     }
+
+    // Render the game
     protected void draw() {
         graphics.begin();
         if (currentLevel == null) {
             graphics.end();
-            return; // Prevent null pointer if no level is loaded
+            return;
         }
-        // Define grid and tile sizes (adjust these values as needed)
-        float gridLeft = -0.8f;   // Left edge of the grid in NDC
-        float gridBottom = -0.8f; // Bottom edge of the grid in NDC
-        float gridWidth = 1.6f;   // Total width in NDC (from -0.8 to 0.8 is 1.6)
-        float gridHeight = 1.6f;  // Total height in NDC
+        float gridLeft = -0.8f;
+        float gridBottom = -0.8f;
+        float gridWidth = 1.6f;
+        float gridHeight = 1.6f;
         float tileWidth = gridWidth / currentLevel.width;
         float tileHeight = gridHeight / currentLevel.height;
 
@@ -299,15 +355,20 @@ public class Game {
                     float ndcX = gridLeft + pos.x * tileWidth;
                     float ndcY = gridBottom + pos.y * tileHeight;
                     Rectangle destinationRect = new Rectangle(ndcX, ndcY, tileWidth, tileHeight);
-                    // Get the tint from the map, default to white if not found
                     Color tint = textureTints.getOrDefault(sprite.getTexturePath(), Color.WHITE);
-                    graphics.draw(sprite.getTexture(), destinationRect, tint);
+                    Texture texture = sprite.getTexture();
+                    if (texture == null) {
+                        System.err.println("Entity " + entityId + " has null texture. TexturePath: " + sprite.getTexturePath());
+                    } else {
+                        graphics.draw(texture, destinationRect, tint);
+                    }
                 }
             }
         }
         graphics.end();
     }
 
+    // Shutdown the game
     public void shutdown() {
         System.out.println("System exiting...");
         graphics.close();
