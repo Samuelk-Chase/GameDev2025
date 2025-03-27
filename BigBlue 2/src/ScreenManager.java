@@ -19,10 +19,7 @@ public class ScreenManager {
     }
 
     public void initialize() {
-//        Load Levels
-//        Create Screens
         createScreens();
-//        Setup Screen actions and connections
     }
 
     public void createScreens() {
@@ -33,30 +30,55 @@ public class ScreenManager {
         MenuScreen levelSelectionScreen = new MenuScreen(graphics);
         MenuScreen controlsScreen = new MenuScreen(graphics);
         GameplayScreen gameplayScreen = new GameplayScreen(graphics);
+        MenuScreen creditsScreen = new MenuScreen(graphics);
         mainMenu.addButtons(0.25f, new MenuScreen.ButtonBundle[] {
-            new MenuScreen.ButtonBundle("Play", (_) -> mainMenu.setNextScreen(levelSelectionScreen)),
-            new MenuScreen.ButtonBundle("Controls", (_) -> mainMenu.setNextScreen(controlsScreen)),
-            new MenuScreen.ButtonBundle("Exit", (_) -> glfwSetWindowShouldClose(graphics.getWindow(), true))
+                new MenuScreen.ButtonBundle("Play", (_) -> {
+                    levelSelectionScreen.setBackScreen(mainMenu);
+                    mainMenu.setNextScreen(levelSelectionScreen);
+                }),
+                new MenuScreen.ButtonBundle("Controls", (_) -> {
+                    controlsScreen.setBackScreen(mainMenu);
+                    mainMenu.setNextScreen(controlsScreen);
+                }),
+                new MenuScreen.ButtonBundle("Credits", (_) -> {
+                    creditsScreen.setBackScreen(mainMenu);
+                    mainMenu.setNextScreen(creditsScreen);
+                }),
+                new MenuScreen.ButtonBundle("Exit", (_) -> glfwSetWindowShouldClose(graphics.getWindow(), true))
         });
+
         MenuScreen.ButtonBundle[] levelButtons = new MenuScreen.ButtonBundle[gameplayScreen.getNumLevels() + 1];
         for (int i = 0; i < levelButtons.length - 1; i++) {
             int finalI = i;
-            levelButtons[i] = new MenuScreen.ButtonBundle("Level " + (i + 1), (_) -> {gameplayScreen.setLevel(finalI); levelSelectionScreen.setNextScreen(gameplayScreen);});
+            levelButtons[i] = new MenuScreen.ButtonBundle("Level " + (i + 1), (_) -> {
+                gameplayScreen.setLevel(finalI);
+                levelSelectionScreen.setNextScreen(gameplayScreen);
+            });
         }
         levelButtons[levelButtons.length - 1] = new MenuScreen.ButtonBundle("Back", (_) -> levelSelectionScreen.setNextScreen(levelSelectionScreen.getBackScreen()));
         levelSelectionScreen.addButtons(0.2f, levelButtons);
+
         pauseMenu.addButtons(0.25f, new MenuScreen.ButtonBundle[] {
-            new MenuScreen.ButtonBundle("Main Menu", (_) -> pauseMenu.setNextScreen(mainMenu)),
-            new MenuScreen.ButtonBundle("Resume", (_) -> pauseMenu.setNextScreen(gameplayScreen)),
-            new MenuScreen.ButtonBundle("Controls", (_) -> pauseMenu.setNextScreen(controlsScreen)),
+                new MenuScreen.ButtonBundle("Main Menu", (_) -> pauseMenu.setNextScreen(mainMenu)),
+                new MenuScreen.ButtonBundle("Resume", (_) -> pauseMenu.setNextScreen(gameplayScreen)),
+                new MenuScreen.ButtonBundle("Controls", (_) -> {
+                    controlsScreen.setBackScreen(pauseMenu);
+                    pauseMenu.setNextScreen(controlsScreen);
+                }),
         });
+
         controlsScreen.addButtons(0.25f, new MenuScreen.ButtonBundle[]{
                 new MenuScreen.ButtonBundle("Back", (_) -> controlsScreen.setNextScreen(controlsScreen.getBackScreen()))
         });
+
+        // **Step 3: Add "Back" button to credits screen**
+        creditsScreen.addButtons(0.25f, new MenuScreen.ButtonBundle[]{
+                new MenuScreen.ButtonBundle("Back", (_) -> creditsScreen.setNextScreen(creditsScreen.getBackScreen()))
+        });
+
         gameplayScreen.forceAction(GLFW_KEY_ESCAPE, (_) -> gameplayScreen.setNextScreen(pauseMenu));
         this.gameScreen = gameplayScreen;
     }
-
     public void run() {
         lastTime = glfwGetTime();
         final double targetFPS = 60.0;
