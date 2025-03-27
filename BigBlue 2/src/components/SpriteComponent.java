@@ -35,6 +35,17 @@ public class SpriteComponent extends Component implements Cloneable {
             animation.update();
         }
     }
+    public void setTexture(Texture texture, String texturePath) {
+        this.texture = texture;
+        this.animation = null;
+        this.texturePath = texturePath;
+    }
+
+    public void setAnimation(Animation animation, String texturePath) {
+        this.animation = animation;
+        this.texture = null;
+        this.texturePath = texturePath;
+    }
 
     @Override
     public SpriteComponent clone() {

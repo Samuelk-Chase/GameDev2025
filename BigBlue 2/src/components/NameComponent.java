@@ -1,7 +1,7 @@
 package components;
 
 public class NameComponent extends Component {
-    public final String name;
+    public  String name;
 
     public NameComponent(String name) {
         this.name = name;

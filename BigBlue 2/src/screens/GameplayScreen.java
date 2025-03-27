@@ -53,7 +53,6 @@ public class GameplayScreen extends Screen{
         initializeTextureTints();
     }
 
-    // Load all levels from file
     private void loadLevels() {
         ParseLevel parser = new ParseLevel();
         levels = parser.parseLevels("resources/levels/levels-all.bbiy");
@@ -62,25 +61,26 @@ public class GameplayScreen extends Screen{
         } else {
             System.err.println("No levels found!");
         }
+    }private void setLevel(ParseLevel.LevelData level) {
+        this.currentLevel = level;
+        entityManager.clear();
+        undoStack.clear();
+        loadLevelEntities();
+        ruleSystem.update();
+        applyTransformations();
     }
+
 
     public void setLevel(int levelIndex) {
         setLevel(levels.get(levelIndex));
     }
 
-    // Set the current level and load its entities
-    private void setLevel(ParseLevel.LevelData level) {
-        this.currentLevel = level;
-        entityManager.clear();
-        loadLevelEntities();
-        ruleSystem.update();
-    }
+
 
     public int getNumLevels() {
         return levels.size();
     }
 
-    // Load the next level
     private void loadNextLevel() {
         currentLevelIndex++;
         if (currentLevelIndex < levels.size()) {
@@ -91,12 +91,10 @@ public class GameplayScreen extends Screen{
         }
     }
 
-    // Reset the current level
     private void resetLevel() {
         setLevel(levels.get(currentLevelIndex));
     }
 
-    // Load entities from the level data
     private void loadLevelEntities() {
         for (int y = 0; y < currentLevel.height; y++) {
             for (int x = 0; x < currentLevel.width; x++) {
@@ -119,7 +117,6 @@ public class GameplayScreen extends Screen{
             entityManager.addComponent(entityId, new PositionComponent(x, y));
             String fullPath = "resources/images/" + blueprint.spritePath;
 
-            // Sprite loading logic remains the same
             try {
                 if (c == 'b' || c == 'B') {
                     Texture texture = new Texture(fullPath);
@@ -156,8 +153,47 @@ public class GameplayScreen extends Screen{
             }
         }
     }
+    private void applyTransformations() {
+        for (int entityId : entityManager.getAllEntityIds()) {
+            if (entityManager.isEntityActive(entityId)) {
+                RuleComponent ruleComp = entityManager.getComponent(entityId, RuleComponent.class);
+                if (ruleComp == null) {
+                    NameComponent nameComp = entityManager.getComponent(entityId, NameComponent.class);
+                    if (nameComp != null) {
+                        String currentName = nameComp.name;
+                        String targetName = ruleSystem.getFinalTransformation(currentName);
+                        if (!targetName.equals(currentName)) {
+                            transformEntity(entityId, targetName);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
-    // Initialize texture tints for rendering
+    private void transformEntity(int entityId, String targetName) {
+        NameComponent nameComp = entityManager.getComponent(entityId, NameComponent.class);
+        if (nameComp != null) {
+            nameComp.name = targetName;
+        }
+
+        SpriteComponent spriteComp = entityManager.getComponent(entityId, SpriteComponent.class);
+        if (spriteComp != null) {
+            String spritePath = targetName.toLowerCase() + ".png";
+            String fullPath = "resources/images/" + spritePath;
+            try {
+                if (targetName.equals("BigBlue")) {
+                    Texture texture = new Texture(fullPath);
+                    spriteComp.setTexture(texture, spritePath);
+                } else {
+                    Animation animation = new Animation(fullPath, 3, 200);
+                    spriteComp.setAnimation(animation, spritePath);
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to load sprite for transformation: " + fullPath);
+            }
+        }
+    }
     private void initializeTextureTints() {
         textureTints.put("hedge.png", new Color(0.0f, 0.6f, 0.0f));
         textureTints.put("wall.png", new Color(0.4f, 0.3f, 0.2f));
@@ -168,7 +204,6 @@ public class GameplayScreen extends Screen{
         textureTints.put("lava.png", new Color(1.0f, 0.5f, 0.0f));
     }
 
-    // Initialize the character-to-entity mapping
     private void initializeCharMap() {
         charMap.put('h', new EntityBlueprint("hedge.png", false, "Hedge"));
         charMap.put('w', new EntityBlueprint("wall.png", false, "Wall"));
@@ -195,7 +230,6 @@ public class GameplayScreen extends Screen{
         charMap.put('K', new EntityBlueprint("word-kill.png", true, "Kill"));
     }
 
-    // Handle movement for all "you" entities
     private void handleMovement(int dx, int dy) {
         Set<Integer> youEntities = conditionSystem.getYouEntities();
         if (youEntities.isEmpty()) return;
@@ -205,12 +239,10 @@ public class GameplayScreen extends Screen{
             System.out.println("You entity " + name + " has properties: " + props);
         }
         System.out.println("Active rules: " + ruleSystem.activeRules);
-        // Save the current state for undo
         GameState currentState = entityManager.saveState();
         undoStack.push(currentState);
 
         boolean anyMoved = false;
-        // Sort entities for consistent processing order
         List<Integer> youEntitiesList = new ArrayList<>(youEntities);
         Collections.sort(youEntitiesList);
 
@@ -223,7 +255,8 @@ public class GameplayScreen extends Screen{
         }
 
         if (anyMoved) {
-            ruleSystem.update(); // Update rules after movement
+            ruleSystem.update();
+            applyTransformations();
             int condition = conditionSystem.checkConditions();
             if (condition == 1) {
                 System.out.println("Victory!");
@@ -233,11 +266,10 @@ public class GameplayScreen extends Screen{
                 resetLevel();
             }
         } else {
-            undoStack.pop(); // No movement occurred, discard state
+            undoStack.pop();
         }
     }
 
-    // Attempt to move a single entity
     private boolean tryMoveEntity(int entityId, int dx, int dy) {
         PositionComponent pos = entityManager.getComponent(entityId, PositionComponent.class);
         if (pos == null) return false;
@@ -256,7 +288,7 @@ public class GameplayScreen extends Screen{
         return false;
     }
 
-    // Get names of entities with a specific property
+
     private Set<String> getNamesWithProperty(String property) {
         Set<String> result = new HashSet<>();
         for (Map.Entry<String, Set<String>> entry : ruleSystem.activeRules.entrySet()) {
@@ -267,7 +299,6 @@ public class GameplayScreen extends Screen{
         return result;
     }
 
-    // Undo the last move
     private void undo() {
         if (!undoStack.isEmpty()) {
             GameState previousState = undoStack.pop();

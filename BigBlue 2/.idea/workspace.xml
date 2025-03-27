@@ -5,11 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8858ee06-ea5c-4baa-8898-f17b08ca1729" name="Changes" comment="Got movement/pushing done">
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Game.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/RuleComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/RuleComponent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/entities/EntityManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/entities/EntityManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/systems/MovementSystem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/systems/MovementSystem.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Game.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/StarterProject.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/StarterProject.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/NameComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/NameComponent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/SpriteComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/SpriteComponent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/GameplayScreen.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/GameplayScreen.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/systems/ConditionSystem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/systems/ConditionSystem.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/systems/RuleSystem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/systems/RuleSystem.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -53,7 +56,7 @@
     "git-widget-placeholder": "main",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "/Users/samuel/CS5410/GameDEV/BigBlue 2/resources/images",
-    "project.structure.last.edited": "Modules",
+    "project.structure.last.edited": "Project",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
     "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings"
