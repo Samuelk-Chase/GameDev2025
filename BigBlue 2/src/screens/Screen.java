@@ -16,6 +16,7 @@ public abstract class Screen {
     protected final float height =  820f/1024f * width;
     protected final float top = 0 - height/2f;
     protected final Rectangle screenRectangle = new Rectangle(left, top, width, height);
+    protected Boolean pauseInput = false;
 
     public Screen(Graphics2D graphics) {
         this.keyboardHandler = new KeyboardHandler(graphics.getWindow());
@@ -29,6 +30,10 @@ public abstract class Screen {
 
     public void forceAction(Integer key, KeyboardHandler.KeyAction action) {
         this.keyboardHandler.setAction(key, action);
+    }
+
+    public Boolean getPauseInput() {
+        return pauseInput;
     }
 
     public void setNextScreen(Screen nextScreen) {
@@ -64,7 +69,7 @@ public abstract class Screen {
     public abstract void processInput();
 
     public void update(double elapsedTime) {
-        keyboardHandler.update(elapsedTime);
+        if (!pauseInput) keyboardHandler.update(elapsedTime);
         screenUpdate(elapsedTime);
     }
 

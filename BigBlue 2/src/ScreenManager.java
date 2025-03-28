@@ -7,7 +7,6 @@ public class ScreenManager {
     private double lastTime;
     private final Graphics2D graphics;
     private Screen currentScreen;
-    private GameplayScreen gameScreen;
 
     public ScreenManager(Graphics2D graphics) {
         this.graphics = graphics;
@@ -65,7 +64,13 @@ public class ScreenManager {
                 })),
         });
 
-        controlsScreen.addButtons(0.25f, new MenuScreen.ButtonBundle[]{
+        controlsScreen.addButtons(0.125f, new MenuScreen.ButtonBundle[]{
+                new MenuScreen.ButtonBundle("Up", ControlButton.makeCreator(GLFW_KEY_UP, gameplayScreen.getKeyboardHandler(), controlsScreen.getPauseInput())),
+                new MenuScreen.ButtonBundle("Down", ControlButton.makeCreator(GLFW_KEY_DOWN, gameplayScreen.getKeyboardHandler(), controlsScreen.getPauseInput())),
+                new MenuScreen.ButtonBundle("Left", ControlButton.makeCreator(GLFW_KEY_LEFT, gameplayScreen.getKeyboardHandler(), controlsScreen.getPauseInput())),
+                new MenuScreen.ButtonBundle("Right", ControlButton.makeCreator(GLFW_KEY_RIGHT, gameplayScreen.getKeyboardHandler(), controlsScreen.getPauseInput())),
+                new MenuScreen.ButtonBundle("Undo", ControlButton.makeCreator(GLFW_KEY_Z, gameplayScreen.getKeyboardHandler(), controlsScreen.getPauseInput())),
+                new MenuScreen.ButtonBundle("Restart", ControlButton.makeCreator(GLFW_KEY_R, gameplayScreen.getKeyboardHandler(), controlsScreen.getPauseInput())),
                 new MenuScreen.ButtonBundle("Back", MenuButton.makeCreator((_) -> controlsScreen.setNextScreen(controlsScreen.getBackScreen())))
         });
 
@@ -73,14 +78,10 @@ public class ScreenManager {
         creditsScreen.addButtons(0.25f, new MenuScreen.ButtonBundle[]{
                 new MenuScreen.ButtonBundle("Back", MenuButton.makeCreator((_) -> creditsScreen.setNextScreen(creditsScreen.getBackScreen())))
         });
-
-        // **Step 3: Add "Back" button to credits screen**
-        creditsScreen.addButtons(0.25f, new MenuScreen.ButtonBundle[]{
-                new MenuScreen.ButtonBundle("Back", MenuButton.makeCreator((_) -> creditsScreen.setNextScreen(creditsScreen.getBackScreen())))
-        });
+        pauseMenu.forceAction(GLFW_KEY_ESCAPE, (_) -> pauseMenu.setNextScreen(gameplayScreen));
         gameplayScreen.forceAction(GLFW_KEY_ESCAPE, (_) -> gameplayScreen.setNextScreen(pauseMenu));
-        this.gameScreen = gameplayScreen;
     }
+
     public void run() {
         lastTime = glfwGetTime();
         final double targetFPS = 60.0;

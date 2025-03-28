@@ -20,7 +20,6 @@ public class MenuScreen extends Screen {
     private float textureWidth;
     private float textureHeight;
 
-
     public record ButtonBundle(String text, Button.ButtonCreator creator) {
 
     }

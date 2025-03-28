@@ -62,6 +62,10 @@ public class GameplayScreen extends Screen {
         initializeTextureTints();
     }
 
+    public KeyboardHandler getKeyboardHandler() {
+        return keyboardHandler;
+    }
+
     private void loadLevels() {
         ParseLevel parser = new ParseLevel();
         levels = parser.parseLevels("resources/levels/levels-all.bbiy");
