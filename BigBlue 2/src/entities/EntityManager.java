@@ -2,6 +2,8 @@ package entities;
 
 import components.Component;
 import components.NameComponent;
+import components.PositionComponent;
+import screens.GameplayScreen;
 import java.util.*;
 
 public class EntityManager {
@@ -9,6 +11,11 @@ public class EntityManager {
     private final Map<Integer, List<Component>> entityComponents = new HashMap<>();
     private final Map<Integer, Map<Class<?>, Component>> componentMap = new HashMap<>();
     private final Set<Integer> allEntityIds = new HashSet<>();
+    private final GameplayScreen gameplayScreen;
+
+    public EntityManager(GameplayScreen gameplayScreen) {
+        this.gameplayScreen = gameplayScreen;
+    }
 
     public int createEntity() {
         int id = nextEntityId++;
@@ -19,6 +26,10 @@ public class EntityManager {
     }
 
     public void destroyEntity(int entityId) {
+        PositionComponent pos = getComponent(entityId, PositionComponent.class);
+        if (pos != null) {
+            gameplayScreen.onEntityRemoved(pos.x, pos.y);
+        }
         componentMap.remove(entityId);
         entityComponents.remove(entityId);
         allEntityIds.remove(entityId);
@@ -76,7 +87,7 @@ public class EntityManager {
         allEntityIds.clear();
     }
 
-    public entities.GameState saveState() {
-        return new entities.GameState(entityComponents, allEntityIds);
+    public GameState saveState() {
+        return new GameState(entityComponents, allEntityIds);
     }
 }

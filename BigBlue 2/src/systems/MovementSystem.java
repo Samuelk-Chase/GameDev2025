@@ -8,6 +8,9 @@ import java.util.*;
 
 public class MovementSystem {
     private final EntityManager entityManager;
+    private static final Set<String> DESTRUCTIBLE_NAMES = new HashSet<>(Arrays.asList(
+            "Wall", "Rock", "Flag", "BigBlue", "Floor", "Grass", "Water", "Lava"
+    ));
 
     public MovementSystem(EntityManager entityManager) {
         this.entityManager = entityManager;
@@ -18,23 +21,19 @@ public class MovementSystem {
         int targetY = startY + dy;
 
         List<Integer> entitiesAtTarget = getEntitiesAt(targetX, targetY);
-
-        // Check for blocking entities
         for (int id : entitiesAtTarget) {
             String name = entityManager.getEntityName(id);
             if (name.equals("Hedge")) {
                 return false;
             }
             RuleComponent ruleComp = entityManager.getComponent(id, RuleComponent.class);
-            if (ruleComp == null) { // Only check "Stop" for non-text entities
+            if (ruleComp == null) {
                 Set<String> props = RuleSystem.activeRules.get(name);
                 if (props != null && props.contains("Stop") && !pushableNames.contains(name)) {
                     return false;
                 }
             }
         }
-
-        // Try to push all pushable entities (text entities are always pushable)
         for (int id : entitiesAtTarget) {
             if (isPushable(id, pushableNames)) {
                 if (!tryPush(id, dx, dy, pushableNames, 0)) {
@@ -56,7 +55,6 @@ public class MovementSystem {
         int nextY = pos.y + dy;
         List<Integer> entitiesAtNext = getEntitiesAt(nextX, nextY);
 
-        // Check for blockers
         for (int id : entitiesAtNext) {
             if (id == entityId) continue;
             String name = entityManager.getEntityName(id);
@@ -64,15 +62,13 @@ public class MovementSystem {
                 return false;
             }
             RuleComponent ruleComp = entityManager.getComponent(id, RuleComponent.class);
-            if (ruleComp == null) { // Only check "Stop" for non-text entities
+            if (ruleComp == null) {
                 Set<String> props = RuleSystem.activeRules.get(name);
                 if (props != null && props.contains("Stop") && !pushableNames.contains(name)) {
                     return false;
                 }
             }
         }
-
-        // Push other pushable entities
         for (int id : entitiesAtNext) {
             if (id == entityId) continue;
             if (isPushable(id, pushableNames)) {
@@ -81,12 +77,9 @@ public class MovementSystem {
                 }
             }
         }
-
-        // Move the entity
         pos.x = nextX;
         pos.y = nextY;
 
-        // Check for sink condition
         checkAndApplySink(nextX, nextY);
 
         return true;
@@ -104,11 +97,9 @@ public class MovementSystem {
     }
 
     private boolean isPushable(int entityId, Set<String> pushableNames) {
-        // Text entities (with RuleComponent) are always pushable
         if (entityManager.getComponent(entityId, RuleComponent.class) != null) {
             return true;
         }
-        // Non-text entities depend on the "Push" property
         String name = entityManager.getEntityName(entityId);
         return pushableNames.contains(name);
     }
@@ -126,7 +117,10 @@ public class MovementSystem {
         }
         if (hasSink) {
             for (int id : new ArrayList<>(entities)) {
-                entityManager.destroyEntity(id);
+                if (entityManager.getComponent(id, RuleComponent.class) == null &&
+                        DESTRUCTIBLE_NAMES.contains(entityManager.getEntityName(id))) {
+                    entityManager.destroyEntity(id);
+                }
             }
         }
     }

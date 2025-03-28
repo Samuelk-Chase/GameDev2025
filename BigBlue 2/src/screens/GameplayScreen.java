@@ -16,12 +16,13 @@ import systems.ConditionSystem;
 import systems.MovementSystem;
 import systems.RuleSystem;
 import util.ParseLevel;
+import systems.ParticleManager;
 
 import java.util.*;
 
 import static org.lwjgl.glfw.GLFW.*;
 
-public class GameplayScreen extends Screen{
+public class GameplayScreen extends Screen {
     private List<ParseLevel.LevelData> levels;
     private ParseLevel.LevelData currentLevel;
     private EntityManager entityManager;
@@ -33,11 +34,20 @@ public class GameplayScreen extends Screen{
     private MovementSystem movementSystem;
     private ConditionSystem conditionSystem;
     private final Stack<GameState> undoStack = new Stack<>();
+    private float gridLeft = -0.8f;
+    private float gridBottom = -0.8f;
+    private float gridWidth = 1.6f;
+    private float gridHeight = 1.6f;
+    private float tileWidth;
+    private float tileHeight;
+    private ParticleManager particleManager;
+    private Set<Integer> previousYouEntities = new HashSet<>();
+    private Set<Integer> previousWinEntities = new HashSet<>();
 
     public GameplayScreen(Graphics2D graphics) {
         super(graphics);
-        this.entityManager = new EntityManager();
         this.charMap = new HashMap<>();
+        this.entityManager = new EntityManager(this);
         this.ruleSystem = new RuleSystem(entityManager);
         this.movementSystem = new MovementSystem(entityManager);
         this.conditionSystem = new ConditionSystem(entityManager, ruleSystem);
@@ -64,11 +74,14 @@ public class GameplayScreen extends Screen{
 
     private void setLevel(ParseLevel.LevelData level) {
         this.currentLevel = level;
+        this.tileWidth = gridWidth / currentLevel.width;
+        this.tileHeight = gridHeight / currentLevel.height;
         entityManager.clear();
         undoStack.clear();
         loadLevelEntities();
         ruleSystem.update();
         applyTransformations();
+        particleManager = new ParticleManager(gridLeft, gridBottom, tileWidth, tileHeight, 0.02f);
     }
 
     public void setLevel(int levelIndex) {
@@ -107,7 +120,6 @@ public class GameplayScreen extends Screen{
         }
     }
 
-    // Create an entity based on a character from the level map
     private void createEntityFromChar(char c, int x, int y, boolean isRuleLayer) {
         EntityBlueprint blueprint = charMap.get(c);
         if (blueprint != null) {
@@ -189,7 +201,6 @@ public class GameplayScreen extends Screen{
                     spriteComp.setAnimation(animation, spritePath);
                 }
             } catch (Exception e) {
-                System.err.println("Failed to load sprite for transformation: " + fullPath);
             }
         }
     }
@@ -255,19 +266,51 @@ public class GameplayScreen extends Screen{
         }
 
         if (anyMoved) {
+            // Save previous YOU and WIN entities
+            previousYouEntities.clear();
+            previousYouEntities.addAll(conditionSystem.getYouEntities());
+            previousWinEntities.clear();
+            previousWinEntities.addAll(conditionSystem.getWinEntities());
+
             ruleSystem.update();
             applyTransformations();
+
+            // Detect new YOU and WIN entities
+            Set<Integer> newYouEntities = conditionSystem.getYouEntities();
+            Set<Integer> newWinEntities = conditionSystem.getWinEntities();
+
+            // Find newly added entities
+            Set<Integer> addedYouEntities = new HashSet<>(newYouEntities);
+            addedYouEntities.removeAll(previousYouEntities);
+            Set<Integer> addedWinEntities = new HashSet<>(newWinEntities);
+            addedWinEntities.removeAll(previousWinEntities);
+
+            // Trigger sparkle effects for new YOU and WIN tiles
+            for (int id : addedYouEntities) {
+                PositionComponent pos = entityManager.getComponent(id, PositionComponent.class);
+                if (pos != null) {
+                    particleManager.createSparkleEffect(pos.x, pos.y);
+                }
+            }
+            for (int id : addedWinEntities) {
+                PositionComponent pos = entityManager.getComponent(id, PositionComponent.class);
+                if (pos != null) {
+                    particleManager.createSparkleEffect(pos.x, pos.y);
+                }
+            }
+
             int condition = conditionSystem.checkConditions();
             if (condition == 1) {
                 System.out.println("Victory!");
+                particleManager.createFireworks(); // Trigger fireworks
                 loadNextLevel();
-            } else if (condition == -1) {
-                System.out.println("Death!");
-                resetLevel();
             }
         } else {
             undoStack.pop();
         }
+    }
+    public void onEntityRemoved(float gridX, float gridY) {
+        particleManager.createDestructionEffect(gridX, gridY);
     }
 
     private boolean tryMoveEntity(int entityId, int dx, int dy) {
@@ -287,7 +330,6 @@ public class GameplayScreen extends Screen{
         }
         return false;
     }
-
 
     private Set<String> getNamesWithProperty(String property) {
         Set<String> result = new HashSet<>();
@@ -309,12 +351,10 @@ public class GameplayScreen extends Screen{
 
     @Override
     public void setLoadValues() {
-
     }
 
     @Override
     public void processInput() {
-
     }
 
     @Override
@@ -325,6 +365,7 @@ public class GameplayScreen extends Screen{
                 sprite.update();
             }
         }
+        particleManager.update(elapsedTime); // Update particles
     }
 
     @Override
@@ -346,13 +387,13 @@ public class GameplayScreen extends Screen{
                     Rectangle destinationRect = new Rectangle(ndcX, ndcY, tileWidth, tileHeight);
                     Color tint = textureTints.getOrDefault(sprite.getTexturePath(), Color.WHITE);
                     Texture texture = sprite.getTexture();
-                    if (texture == null) {
-                        System.err.println("Entity " + entityId + " has null texture. TexturePath: " + sprite.getTexturePath());
-                    } else {
+                    if (texture != null) {
                         graphics.draw(texture, destinationRect, tint);
                     }
                 }
             }
         }
+        particleManager.render(graphics);
     }
 }
+
