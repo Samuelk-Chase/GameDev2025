@@ -20,7 +20,9 @@ public class MenuScreen extends Screen {
     private float textureWidth;
     private float textureHeight;
 
-    public record ButtonBundle(String text, KeyboardHandler.KeyAction action) {
+
+    public record ButtonBundle(String text, Button.ButtonCreator creator) {
+
     }
 
     public MenuScreen(Graphics2D graphics) {
@@ -28,10 +30,10 @@ public class MenuScreen extends Screen {
         backgroundTexture = new Texture("resources/images/image.png");
         textureWidth = backgroundTexture.getWidth();
         textureHeight = backgroundTexture.getHeight();
-        forceAction(GLFW_KEY_UP, (_) -> {buttonIndex = (--buttonIndex) >= 0 ? buttonIndex : buttons.size() - 1;});
-        forceAction(GLFW_KEY_DOWN, (_) -> {buttonIndex = (++buttonIndex) % buttons.size();});
-        forceAction(GLFW_KEY_ENTER, (double elapsedTime) -> {buttons.get(buttonIndex).click(elapsedTime);});
 
+        forceAction(GLFW_KEY_UP, (_) -> buttonIndex = (--buttonIndex) >= 0 ? buttonIndex : buttons.size() - 1);
+        forceAction(GLFW_KEY_DOWN, (_) -> buttonIndex = (++buttonIndex) % buttons.size());
+        forceAction(GLFW_KEY_ENTER, (double elapsedTime) -> buttons.get(buttonIndex).click(elapsedTime));
     }
 
     public void addButtons(float buttonHeight, ButtonBundle[] buttonInfo) {
@@ -46,7 +48,7 @@ public class MenuScreen extends Screen {
         float buttonTop = top + (height - (buttonHeight + buttonMargin) * buttonInfo.length + buttonMargin) / 2f;
         float buttonLeft = left + (width - buttonWidth) / 2f;
         for (ButtonBundle info : buttonInfo) {
-            Button button = new Button(buttonLeft, buttonTop, buttonWidth, buttonHeight, info.text, info.action, graphics);
+            Button button = info.creator.create(buttonLeft, buttonTop, buttonWidth, buttonHeight, info.text, graphics);
             buttons.add(button);
             buttonTop += buttonHeight + buttonMargin;
         }
@@ -67,7 +69,6 @@ public class MenuScreen extends Screen {
 
     @Override
     public void render() {
-        Rectangle screenRectangle = new Rectangle(left, top, width, height);
         graphics.draw(screenRectangle, Color.BLACK);
 
         if (backgroundTexture != null) {

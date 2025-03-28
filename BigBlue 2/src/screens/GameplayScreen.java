@@ -27,7 +27,6 @@ public class GameplayScreen extends Screen{
     private EntityManager entityManager;
     private Map<Character, EntityBlueprint> charMap;
     private int currentLevelIndex = 0;
-    private boolean running = true;
     private final Map<String, Color> textureTints = new HashMap<>();
     private final Set<Integer> keysPressedLastFrame = new HashSet<>();
     private RuleSystem ruleSystem;
@@ -61,7 +60,9 @@ public class GameplayScreen extends Screen{
         } else {
             System.err.println("No levels found!");
         }
-    }private void setLevel(ParseLevel.LevelData level) {
+    }
+
+    private void setLevel(ParseLevel.LevelData level) {
         this.currentLevel = level;
         entityManager.clear();
         undoStack.clear();
@@ -70,12 +71,9 @@ public class GameplayScreen extends Screen{
         applyTransformations();
     }
 
-
     public void setLevel(int levelIndex) {
         setLevel(levels.get(levelIndex));
     }
-
-
 
     public int getNumLevels() {
         return levels.size();
@@ -87,7 +85,6 @@ public class GameplayScreen extends Screen{
             setLevel(levels.get(currentLevelIndex));
         } else {
             System.out.println("Game Completed!");
-            running = false;
         }
     }
 
@@ -109,6 +106,7 @@ public class GameplayScreen extends Screen{
             }
         }
     }
+
     // Create an entity based on a character from the level map
     private void createEntityFromChar(char c, int x, int y, boolean isRuleLayer) {
         EntityBlueprint blueprint = charMap.get(c);
@@ -153,6 +151,7 @@ public class GameplayScreen extends Screen{
             }
         }
     }
+
     private void applyTransformations() {
         for (int entityId : entityManager.getAllEntityIds()) {
             if (entityManager.isEntityActive(entityId)) {
@@ -194,6 +193,7 @@ public class GameplayScreen extends Screen{
             }
         }
     }
+
     private void initializeTextureTints() {
         textureTints.put("hedge.png", new Color(0.0f, 0.6f, 0.0f));
         textureTints.put("wall.png", new Color(0.4f, 0.3f, 0.2f));

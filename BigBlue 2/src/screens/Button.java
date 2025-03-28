@@ -5,8 +5,7 @@ import edu.usu.graphics.Font;
 import edu.usu.graphics.Graphics2D;
 import edu.usu.graphics.Rectangle;
 
-public class Button {
-    private final KeyboardHandler.KeyAction action;
+public abstract class Button {
     private final Rectangle borderRectangle;
     private final Rectangle rectangle;
     private final Graphics2D graphics;
@@ -15,12 +14,17 @@ public class Button {
     protected static final Font font = new Font("resources/fonts/Roboto-Bold.ttf", 64, true);
     protected static final Color backgroundColor = new Color(0.2f, 0.3f, 0.4f); // Bluish-gray for normal state
     protected static final Color highlightColor = new Color(0.3f, 0.4f, 0.5f); // Lighter bluish-gray for selected state
-    private final String text;
+
+    protected String text;
     private final float textX;
     private final float textY;
     private final float textHeight;
 
-    public Button(float x, float y, float width, float height, String text, KeyboardHandler.KeyAction action, Graphics2D graphics) {
+    public interface ButtonCreator {
+        Button create(float x, float y, float width, float height, String text, Graphics2D graphics);
+    }
+
+    public Button(float x, float y, float width, float height, String text, Graphics2D graphics) {
         borderRectangle = new Rectangle(x, y, width, height);
         float borderWidth = height * borderPercentage;
         rectangle = new Rectangle(x + borderWidth, y + borderWidth, width - 2 * borderWidth, height - 2 * borderWidth);
@@ -29,13 +33,10 @@ public class Button {
         float textWidth = font.measureTextWidth(text, textHeight);
         textX = x + (width - textWidth) / 3f;
         this.text = text;
-        this.action = action;
         this.graphics = graphics;
     }
 
-    public void click(double elapsedTime) {
-        action.run(elapsedTime);
-    }
+    public abstract void click(double elapsedTime);
 
     public void render(Color borderColor, Color buttonColor, Color textColor) {
         graphics.draw(borderRectangle, borderColor);
