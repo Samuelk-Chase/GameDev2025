@@ -10,10 +10,11 @@ public abstract class Button {
     private final Rectangle rectangle;
     private final Graphics2D graphics;
     private static final float borderPercentage = 0.05f;
-    protected static final float textHeightPercentage = 0.75f;
+    protected static final float textHeightPercentage = 0.6f; // Reduced from 0.75f for better proportion
     protected static final Font font = new Font("resources/fonts/Roboto-Bold.ttf", 64, true);
     protected static final Color backgroundColor = new Color(0.2f, 0.3f, 0.4f); // Bluish-gray for normal state
     protected static final Color highlightColor = new Color(0.3f, 0.4f, 0.5f); // Lighter bluish-gray for selected state
+
     protected String text;
     private final float textX;
     private final float textY;

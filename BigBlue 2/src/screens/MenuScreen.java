@@ -20,7 +20,9 @@ public class MenuScreen extends Screen {
     private float textureWidth;
     private float textureHeight;
 
+
     public record ButtonBundle(String text, Button.ButtonCreator creator) {
+
     }
 
     public MenuScreen(Graphics2D graphics) {
@@ -28,6 +30,7 @@ public class MenuScreen extends Screen {
         backgroundTexture = new Texture("resources/images/image.png");
         textureWidth = backgroundTexture.getWidth();
         textureHeight = backgroundTexture.getHeight();
+
         forceAction(GLFW_KEY_UP, (_) -> buttonIndex = (--buttonIndex) >= 0 ? buttonIndex : buttons.size() - 1);
         forceAction(GLFW_KEY_DOWN, (_) -> buttonIndex = (++buttonIndex) % buttons.size());
         forceAction(GLFW_KEY_ENTER, (double elapsedTime) -> buttons.get(buttonIndex).click(elapsedTime));
