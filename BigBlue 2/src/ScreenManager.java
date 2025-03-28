@@ -76,7 +76,7 @@ public class ScreenManager {
 
         // **Step 3: Add "Back" button to credits screen**
         creditsScreen.addButtons(0.25f, new MenuScreen.ButtonBundle[]{
-                new MenuScreen.ButtonBundle("Back", MenuButton.makeCreator(() -> creditsScreen.setNextScreen(creditsScreen.getBackScreen())))
+                new MenuScreen.ButtonBundle("Back", MenuButton.makeCreator((_) -> creditsScreen.setNextScreen(creditsScreen.getBackScreen())))
         });
         gameplayScreen.forceAction(GLFW_KEY_ESCAPE, (_) -> gameplayScreen.setNextScreen(pauseMenu));
         this.gameScreen = gameplayScreen;
