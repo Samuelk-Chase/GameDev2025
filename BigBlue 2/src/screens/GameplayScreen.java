@@ -89,6 +89,7 @@ public class GameplayScreen extends Screen {
     }
 
     public void setLevel(int levelIndex) {
+        currentLevelIndex = levelIndex;
         setLevel(levels.get(levelIndex));
     }
 

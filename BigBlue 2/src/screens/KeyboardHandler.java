@@ -11,12 +11,20 @@ public class KeyboardHandler {
         public void run(double elapsedTime);
     }
 
-    private final HashMap<Integer, KeyAction> keyActions = new HashMap<>();
+    private HashMap<Integer, KeyAction> keyActions = new HashMap<>();
     private final HashMap<Integer, Boolean> newlyPressed = new HashMap<>();
     private final long window;
 
     public KeyboardHandler(Long window) {
         this.window = window;
+    }
+
+    public void copyKeyboardHandler(KeyboardHandler other) {
+        keyActions = new HashMap<>(other.keyActions);
+        newlyPressed.clear();
+        for (Integer key : keyActions.keySet()) {
+            newlyPressed.put(key, false);
+        }
     }
 
     public void addAction(Integer key, KeyAction action) throws Exception{

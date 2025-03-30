@@ -37,7 +37,6 @@ public class ControlButton extends Button{
             if (action == GLFW_PRESS) {
                 if (key != GLFW_KEY_ESCAPE &&  key != GLFW_KEY_ENTER) {
                     if (controlKeyboard.changeKey(currentKey, key)) {
-                        System.out.println("Changed");
                         setText(key);
                     }
                 screenPauseInput = false;
