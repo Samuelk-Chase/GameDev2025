@@ -1,5 +1,6 @@
 import edu.usu.graphics.Graphics2D;
 import screens.*;
+import serializer.Serializer;
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -7,8 +8,10 @@ public class ScreenManager {
     private double lastTime;
     private final Graphics2D graphics;
     private Screen currentScreen;
+    private Serializer serializer;
 
     public ScreenManager(Graphics2D graphics) {
+        serializer = new Serializer();
         this.graphics = graphics;
     }
 
@@ -73,7 +76,7 @@ public class ScreenManager {
                 new MenuScreen.ButtonBundle("Restart", ControlButton.makeCreator(GLFW_KEY_R, gameplayScreen.getKeyboardHandler(), controlsScreen.getPauseInput())),
                 new MenuScreen.ButtonBundle("Back", MenuButton.makeCreator((_) -> controlsScreen.setNextScreen(controlsScreen.getBackScreen())))
         });
-
+        serializer.saveControls(gameplayScreen.getKeyboardHandler());
         // **Step 3: Add "Back" button to credits screen**
         creditsScreen.addButtons(0.25f, new MenuScreen.ButtonBundle[]{
                 new MenuScreen.ButtonBundle("Back", MenuButton.makeCreator((_) -> creditsScreen.setNextScreen(creditsScreen.getBackScreen())))
