@@ -6,10 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="8858ee06-ea5c-4baa-8898-f17b08ca1729" name="Changes" comment="Got movement/pushing done">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ScreenManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ScreenManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/entities/EntityBlueprint.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/entities/EntityBlueprint.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/screens/Button.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/Button.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/screens/MenuScreen.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/MenuScreen.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/GameplayScreen.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/GameplayScreen.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -40,34 +37,34 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Application.Driver - Windows/Linux.executor": "Run",
-    "Application.Driver - macOS.executor": "Run",
-    "Application.Driver.executor": "Run",
-    "Application.ParseLevel.executor": "Run",
-    "Application.SpriteConverter.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/Users/samuel/CS5410/GameDEV/BigBlue 2/resources/images",
-    "project.structure.last.edited": "Project",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.Driver - Windows/Linux.executor&quot;: &quot;Run&quot;,
+    &quot;Application.Driver - macOS.executor&quot;: &quot;Run&quot;,
+    &quot;Application.Driver.executor&quot;: &quot;Run&quot;,
+    &quot;Application.ParseLevel.executor&quot;: &quot;Run&quot;,
+    &quot;Application.SpriteConverter.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/samuel/CS5410/GameDEV/BigBlue 2/resources/images&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/resources/images" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/resources/Audio" />
       <recent name="$PROJECT_DIR$/resources/images" />
       <recent name="$PROJECT_DIR$/resources/Levels" />
       <recent name="$PROJECT_DIR$/resources/userpreference" />
       <recent name="$PROJECT_DIR$/resources/audio" />
-      <recent name="$PROJECT_DIR$/src" />
     </key>
   </component>
   <component name="RunManager" selected="Application.Driver - macOS">

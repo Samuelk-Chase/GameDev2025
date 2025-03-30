@@ -4,6 +4,8 @@ import components.NameComponent;
 import components.PositionComponent;
 import components.RuleComponent;
 import components.SpriteComponent;
+import edu.usu.audio.Sound;
+import edu.usu.audio.SoundManager;
 import edu.usu.graphics.Color;
 import edu.usu.graphics.Graphics2D;
 import edu.usu.graphics.Rectangle;
@@ -44,6 +46,12 @@ public class GameplayScreen extends Screen {
     private Set<Integer> previousYouEntities = new HashSet<>();
     private Set<Integer> previousWinEntities = new HashSet<>();
 
+
+    private SoundManager soundManager;
+    private Sound moveSound;
+    private Sound winSound;
+    private Sound isWinSound;
+
     public GameplayScreen(Graphics2D graphics) {
         super(graphics);
         this.charMap = new HashMap<>();
@@ -60,6 +68,10 @@ public class GameplayScreen extends Screen {
         loadLevels();
         initializeCharMap();
         initializeTextureTints();
+        soundManager = new SoundManager();
+        moveSound = soundManager.load("move", "resources/audio/move.ogg", false);
+        winSound = soundManager.load("win", "resources/audio/win.ogg", false);
+        isWinSound = soundManager.load("isWin", "resources/audio/isWin.ogg", false);
     }
 
     public KeyboardHandler getKeyboardHandler() {
@@ -294,19 +306,27 @@ public class GameplayScreen extends Screen {
                 PositionComponent pos = entityManager.getComponent(id, PositionComponent.class);
                 if (pos != null) {
                     particleManager.createSparkleEffect(pos.x, pos.y);
+
                 }
             }
             for (int id : addedWinEntities) {
                 PositionComponent pos = entityManager.getComponent(id, PositionComponent.class);
                 if (pos != null) {
                     particleManager.createSparkleEffect(pos.x, pos.y);
+                    if (!isWinSound.isPlaying()) {
+                        isWinSound.play();
+                    }
                 }
             }
+
 
             int condition = conditionSystem.checkConditions();
             if (condition == 1) {
                 System.out.println("Victory!");
-                particleManager.createFireworks(); // Trigger fireworks
+                particleManager.createFireworks();
+                if (!winSound.isPlaying()) {
+                    winSound.play();
+                }
                 loadNextLevel();
             }
         } else {
@@ -330,6 +350,9 @@ public class GameplayScreen extends Screen {
             pos.x = targetX;
             pos.y = targetY;
             movementSystem.checkAndApplySink(targetX, targetY);
+            if (!moveSound.isPlaying()) {
+                moveSound.play();
+            }
             return true;
         }
         return false;
@@ -398,6 +421,10 @@ public class GameplayScreen extends Screen {
             }
         }
         particleManager.render(graphics);
+    }
+
+    public void dispose() {
+        soundManager.cleanup();
     }
 }
 
