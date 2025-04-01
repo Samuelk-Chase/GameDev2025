@@ -45,15 +45,16 @@ public class GameplayScreen extends Screen {
     private ParticleManager particleManager;
     private Set<Integer> previousYouEntities = new HashSet<>();
     private Set<Integer> previousWinEntities = new HashSet<>();
-
+    private MenuScreen mainMenu; // Reference to the main menu screen
 
     private SoundManager soundManager;
     private Sound moveSound;
     private Sound winSound;
     private Sound isWinSound;
 
-    public GameplayScreen(Graphics2D graphics) {
+    public GameplayScreen(Graphics2D graphics, MenuScreen mainMenu) {
         super(graphics);
+        this.mainMenu = mainMenu; // Store the main menu reference
         this.charMap = new HashMap<>();
         this.entityManager = new EntityManager(this);
         this.ruleSystem = new RuleSystem(entityManager);
@@ -98,6 +99,7 @@ public class GameplayScreen extends Screen {
         ruleSystem.update();
         applyTransformations();
         particleManager = new ParticleManager(gridLeft, gridBottom, tileWidth, tileHeight, 0.02f);
+        movementSystem.setParticleManager(particleManager);
     }
 
     public void setLevel(int levelIndex) {
@@ -114,7 +116,7 @@ public class GameplayScreen extends Screen {
         if (currentLevelIndex < levels.size()) {
             setLevel(levels.get(currentLevelIndex));
         } else {
-            System.out.println("Game Completed!");
+            setNextScreen(mainMenu); // Transition to main menu when no more levels
         }
     }
 
@@ -230,19 +232,19 @@ public class GameplayScreen extends Screen {
         textureTints.put("grass.png", new Color(0.0f, 0.8f, 0.0f));
         textureTints.put("water.png", new Color(0.0f, 0.4f, 1.0f));
         textureTints.put("lava.png", new Color(1.0f, 0.5f, 0.0f));
-        textureTints.put("word-wall.png", new Color(0.8f, 0.6f, 0.4f));     // Brownish
-        textureTints.put("word-rock.png", new Color(0.6f, 0.5f, 0.5f));     // Gray
-        textureTints.put("word-flag.png", new Color(1.0f, 0.9f, 0.4f));     // Yellow
-        textureTints.put("word-bigblue.png", new Color(0.4f, 0.6f, 1.0f));  // Blue
-        textureTints.put("word-is.png", new Color(1.0f, 1.0f, 1.0f));       // White
-        textureTints.put("word-stop.png", new Color(1.0f, 0.4f, 0.4f));     // Red
-        textureTints.put("word-push.png", new Color(0.6f, 0.6f, 1.0f));     // Light Blue
-        textureTints.put("word-lava.png", new Color(1.0f, 0.6f, 0.4f));     // Orange
-        textureTints.put("word-water.png", new Color(0.4f, 0.8f, 1.0f));    // Aqua
-        textureTints.put("word-you.png", new Color(0.8f, 0.4f, 1.0f));      // Purple
-        textureTints.put("word-win.png", new Color(1.0f, 1.0f, 0.6f));      // Bright Yellow
-        textureTints.put("word-sink.png", new Color(0.5f, 0.5f, 0.7f));     // Slate
-        textureTints.put("word-kill.png", new Color(0.9f, 0.2f, 0.2f));     // Dark Red
+        textureTints.put("word-wall.png", new Color(0.8f, 0.6f, 0.4f));
+        textureTints.put("word-rock.png", new Color(0.6f, 0.5f, 0.5f));
+        textureTints.put("word-flag.png", new Color(1.0f, 0.9f, 0.4f));
+        textureTints.put("word-bigblue.png", new Color(0.4f, 0.6f, 1.0f));
+        textureTints.put("word-is.png", new Color(1.0f, 1.0f, 1.0f));
+        textureTints.put("word-stop.png", new Color(1.0f, 0.4f, 0.4f));
+        textureTints.put("word-push.png", new Color(0.6f, 0.6f, 1.0f));
+        textureTints.put("word-lava.png", new Color(1.0f, 0.6f, 0.4f));
+        textureTints.put("word-water.png", new Color(0.4f, 0.8f, 1.0f));
+        textureTints.put("word-you.png", new Color(0.8f, 0.4f, 1.0f));
+        textureTints.put("word-win.png", new Color(1.0f, 1.0f, 0.6f));
+        textureTints.put("word-sink.png", new Color(0.5f, 0.5f, 0.7f));
+        textureTints.put("word-kill.png", new Color(0.9f, 0.2f, 0.2f));
     }
 
     private void initializeCharMap() {
@@ -320,7 +322,6 @@ public class GameplayScreen extends Screen {
                 PositionComponent pos = entityManager.getComponent(id, PositionComponent.class);
                 if (pos != null) {
                     particleManager.createSparkleEffect(pos.x, pos.y);
-
                 }
             }
             for (int id : addedWinEntities) {
@@ -332,7 +333,6 @@ public class GameplayScreen extends Screen {
                     }
                 }
             }
-
 
             int condition = conditionSystem.checkConditions();
             if (condition == 1) {
@@ -347,6 +347,7 @@ public class GameplayScreen extends Screen {
             undoStack.pop();
         }
     }
+
     public void onEntityRemoved(float gridX, float gridY) {
         particleManager.createDestructionEffect(gridX, gridY);
     }
@@ -441,4 +442,3 @@ public class GameplayScreen extends Screen {
         soundManager.cleanup();
     }
 }
-

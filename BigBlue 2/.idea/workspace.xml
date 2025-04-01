@@ -5,7 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8858ee06-ea5c-4baa-8898-f17b08ca1729" name="Changes" comment="Got movement/pushing done">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Starter-Project.iml" beforeDir="false" afterPath="$PROJECT_DIR$/Starter-Project.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/keyboard.json" beforeDir="false" afterPath="$PROJECT_DIR$/keyboard.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/screens/GameplayScreen.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/GameplayScreen.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/systems/MovementSystem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/systems/MovementSystem.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/systems/RuleSystem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/systems/RuleSystem.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

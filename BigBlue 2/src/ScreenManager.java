@@ -26,8 +26,7 @@ public class ScreenManager {
         MenuScreen pauseMenu = new MenuScreen(graphics);
         MenuScreen levelSelectionScreen = new MenuScreen(graphics);
         MenuScreen controlsScreen = new MenuScreen(graphics);
-        GameplayScreen gameplayScreen = new GameplayScreen(graphics);
-        MenuScreen creditsScreen = new MenuScreen(graphics);
+        GameplayScreen gameplayScreen = new GameplayScreen(graphics, mainMenu);        MenuScreen creditsScreen = new MenuScreen(graphics);
         mainMenu.addButtons(0.25f, new MenuScreen.ButtonBundle[] {
           new MenuScreen.ButtonBundle("Play", MenuButton.makeCreator((_) -> {
                   levelSelectionScreen.setBackScreen(mainMenu);
