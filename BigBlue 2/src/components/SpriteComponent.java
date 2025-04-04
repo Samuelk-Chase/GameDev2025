@@ -7,10 +7,18 @@ public class SpriteComponent extends Component implements Cloneable {
     private Texture texture;
     private Animation animation;
     private String texturePath;
+    private int zIndex;
 
     public SpriteComponent(Texture texture, String texturePath) {
         this.texture = texture;
         this.texturePath = texturePath;
+        this.zIndex = zIndex;
+    }
+    public int getZIndex() {
+        return zIndex;
+    }
+    public void setZIndex(int zIndex) {
+        this.zIndex = zIndex;
     }
 
     public SpriteComponent(Animation animation, String texturePath) {

@@ -54,7 +54,7 @@ public class GameplayScreen extends Screen {
     private Sound moveSound;
     private Sound winSound;
     private Sound isWinSound;
-    
+
     public GameplayScreen(Graphics2D graphics, MenuScreen mainMenu, ControlConfiguration controlConfiguration) {
         super(graphics);
         this.mainMenu = mainMenu; // Store the main menu reference
@@ -151,14 +151,24 @@ public class GameplayScreen extends Screen {
             String fullPath = "resources/images/" + blueprint.spritePath;
 
             try {
+                SpriteComponent sprite;
                 if (c == 'b' || c == 'B') {
+                    // BigBlue: assign high Z-index
                     Texture texture = new Texture(fullPath);
-                    SpriteComponent sprite = new SpriteComponent(texture, blueprint.spritePath);
-                    entityManager.addComponent(entityId, sprite);
+                    sprite = new SpriteComponent(texture, blueprint.spritePath);
+                    sprite.setZIndex(10);
                 } else {
+                    // Other entities: use an animation and default z-index
                     Animation animation = new Animation(fullPath, 3, 200);
-                    entityManager.addComponent(entityId, new SpriteComponent(animation, blueprint.spritePath));
+                    sprite = new SpriteComponent(animation, blueprint.spritePath);
+                    // If it's Floor, set it to the back (-1), otherwise default to 0.
+                    if (blueprint.word.equals("Floor")) {
+                        sprite.setZIndex(-1);
+                    } else {
+                        sprite.setZIndex(0);
+                    }
                 }
+                entityManager.addComponent(entityId, sprite);
             } catch (Exception e) {
                 System.err.println("Failed to load texture: " + blueprint.spritePath);
             }
@@ -219,11 +229,18 @@ public class GameplayScreen extends Screen {
                 if (targetName.equals("BigBlue")) {
                     Texture texture = new Texture(fullPath);
                     spriteComp.setTexture(texture, spritePath);
+                    spriteComp.setZIndex(10);
+                } else if (targetName.equals("Floor")) {
+                    Animation animation = new Animation(fullPath, 3, 200);
+                    spriteComp.setAnimation(animation, spritePath);
+                    spriteComp.setZIndex(-1);
                 } else {
                     Animation animation = new Animation(fullPath, 3, 200);
                     spriteComp.setAnimation(animation, spritePath);
+                    spriteComp.setZIndex(0);
                 }
             } catch (Exception e) {
+                // Handle exception if needed
             }
         }
     }
@@ -421,7 +438,7 @@ public class GameplayScreen extends Screen {
                 sprite.update();
             }
         }
-        particleManager.update(elapsedTime); // Update particles
+        particleManager.update(elapsedTime);
     }
 
     @Override
@@ -433,7 +450,16 @@ public class GameplayScreen extends Screen {
         float tileWidth = gridWidth / currentLevel.width;
         float tileHeight = gridHeight / currentLevel.height;
 
-        for (int entityId : entityManager.getAllEntityIds()) {
+        List<Integer> entities = new ArrayList<>(entityManager.getAllEntityIds());
+        entities.sort((id1, id2) -> {
+            SpriteComponent s1 = entityManager.getComponent(id1, SpriteComponent.class);
+            SpriteComponent s2 = entityManager.getComponent(id2, SpriteComponent.class);
+            int z1 = s1 != null ? s1.getZIndex() : 0;
+            int z2 = s2 != null ? s2.getZIndex() : 0;
+            return Integer.compare(z1, z2);
+        });
+
+        for (int entityId : entities) {
             if (entityManager.isEntityActive(entityId)) {
                 PositionComponent pos = entityManager.getComponent(entityId, PositionComponent.class);
                 SpriteComponent sprite = entityManager.getComponent(entityId, SpriteComponent.class);
