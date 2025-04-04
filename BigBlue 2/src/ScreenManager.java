@@ -1,5 +1,6 @@
 import edu.usu.graphics.Graphics2D;
 import screens.*;
+import serializer.ControlConfiguration;
 import serializer.Serializer;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -26,7 +27,9 @@ public class ScreenManager {
         MenuScreen pauseMenu = new MenuScreen(graphics);
         MenuScreen levelSelectionScreen = new MenuScreen(graphics);
         MenuScreen controlsScreen = new MenuScreen(graphics);
-        GameplayScreen gameplayScreen = new GameplayScreen(graphics);
+        ControlConfiguration controlConfiguration = new ControlConfiguration();
+        serializer.loadControls(controlConfiguration);
+        GameplayScreen gameplayScreen = new GameplayScreen(graphics, controlConfiguration);
         MenuScreen creditsScreen = new MenuScreen(graphics);
         mainMenu.addButtons(0.25f, new MenuScreen.ButtonBundle[] {
           new MenuScreen.ButtonBundle("Play", MenuButton.makeCreator((_) -> {
@@ -68,15 +71,16 @@ public class ScreenManager {
         });
 
         controlsScreen.addButtons(0.125f, new MenuScreen.ButtonBundle[]{
-                new MenuScreen.ButtonBundle("Up", ControlButton.makeCreator(GLFW_KEY_UP, gameplayScreen.getKeyboardHandler(), controlsScreen.getPauseInput())),
-                new MenuScreen.ButtonBundle("Down", ControlButton.makeCreator(GLFW_KEY_DOWN, gameplayScreen.getKeyboardHandler(), controlsScreen.getPauseInput())),
-                new MenuScreen.ButtonBundle("Left", ControlButton.makeCreator(GLFW_KEY_LEFT, gameplayScreen.getKeyboardHandler(), controlsScreen.getPauseInput())),
-                new MenuScreen.ButtonBundle("Right", ControlButton.makeCreator(GLFW_KEY_RIGHT, gameplayScreen.getKeyboardHandler(), controlsScreen.getPauseInput())),
-                new MenuScreen.ButtonBundle("Undo", ControlButton.makeCreator(GLFW_KEY_Z, gameplayScreen.getKeyboardHandler(), controlsScreen.getPauseInput())),
-                new MenuScreen.ButtonBundle("Restart", ControlButton.makeCreator(GLFW_KEY_R, gameplayScreen.getKeyboardHandler(), controlsScreen.getPauseInput())),
-                new MenuScreen.ButtonBundle("Back", MenuButton.makeCreator((_) -> controlsScreen.setNextScreen(controlsScreen.getBackScreen())))
+                new MenuScreen.ButtonBundle("Up", ControlButton.makeCreator(ControlConfiguration.Action.UP, controlConfiguration, controlsScreen.getPauseInput())),
+                new MenuScreen.ButtonBundle("Down", ControlButton.makeCreator(ControlConfiguration.Action.DOWN, controlConfiguration, controlsScreen.getPauseInput())),
+                new MenuScreen.ButtonBundle("Left", ControlButton.makeCreator(ControlConfiguration.Action.LEFT, controlConfiguration, controlsScreen.getPauseInput())),
+                new MenuScreen.ButtonBundle("Right", ControlButton.makeCreator(ControlConfiguration.Action.RIGHT, controlConfiguration, controlsScreen.getPauseInput())),
+                new MenuScreen.ButtonBundle("Undo", ControlButton.makeCreator(ControlConfiguration.Action.UNDO, controlConfiguration, controlsScreen.getPauseInput())),
+                new MenuScreen.ButtonBundle("Restart", ControlButton.makeCreator(ControlConfiguration.Action.RESTART, controlConfiguration, controlsScreen.getPauseInput())),
+                new MenuScreen.ButtonBundle("Back", MenuButton.makeCreator((_) -> {serializer.saveControls(controlConfiguration); controlsScreen.setNextScreen(controlsScreen.getBackScreen());}))
         });
-        serializer.saveControls(gameplayScreen.getKeyboardHandler());
+        gameplayScreen.forceAction(GLFW_KEY_ESCAPE, (_) -> {serializer.saveControls(controlConfiguration); controlsScreen.setNextScreen(controlsScreen.getBackScreen());});
+
         // **Step 3: Add "Back" button to credits screen**
         creditsScreen.addButtons(0.25f, new MenuScreen.ButtonBundle[]{
                 new MenuScreen.ButtonBundle("Back", MenuButton.makeCreator((_) -> creditsScreen.setNextScreen(creditsScreen.getBackScreen())))
@@ -101,6 +105,10 @@ public class ScreenManager {
         }
         System.out.println("System exiting...");
         graphics.close();
+    }
+
+    public void shutdown() {
+        serializer.shutdown();
     }
 
     private void processInput() {

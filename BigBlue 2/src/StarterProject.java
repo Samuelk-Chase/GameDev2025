@@ -8,6 +8,7 @@ public class StarterProject {
             ScreenManager game = new ScreenManager(graphics);
             game.initialize();
             game.run();
+            game.shutdown();
         } catch (Exception e) {
             e.printStackTrace();
         }

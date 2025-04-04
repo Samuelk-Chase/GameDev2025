@@ -1,14 +1,14 @@
 package serializer;
 
 import com.google.gson.Gson;
-import screens.KeyboardHandler;
-
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static org.lwjgl.glfw.GLFW.*;
 
 public class Serializer implements Runnable {
 
@@ -18,13 +18,13 @@ public class Serializer implements Runnable {
         Save
     }
 
-    protected KeyboardHandler keyboardHandler;
+    protected ControlConfiguration controlConfiguration;
 
     private boolean done = false;
     private final Lock lockSignal = new ReentrantLock();
     private final Condition doSomething = lockSignal.newCondition();
 
-    private final String fileName = "keyboard.json";
+    private final String fileName = "controls.json";
 
     private Activity doThis = Activity.Nothing;
 
@@ -54,18 +54,18 @@ public class Serializer implements Runnable {
         }
     }
 
-    public void saveControls(KeyboardHandler keyboardHandler) {
+    public void saveControls(ControlConfiguration controlConfiguration) {
         lockSignal.lock();
         doThis = Activity.Save;
-        this.keyboardHandler = keyboardHandler;
+        this.controlConfiguration = controlConfiguration;
         doSomething.signal();
         lockSignal.unlock();
     }
 
-    public void loadControls(KeyboardHandler keyboardHandler) {
+    public void loadControls(ControlConfiguration controlConfiguration) {
         lockSignal.lock();
         doThis = Activity.Load;
-        this.keyboardHandler = keyboardHandler;
+        this.controlConfiguration = controlConfiguration;
         doSomething.signal();
         lockSignal.unlock();
     }
@@ -86,7 +86,7 @@ public class Serializer implements Runnable {
     private synchronized void saveSomething() {
         try (FileWriter writer = new FileWriter(fileName)) {
             Gson gson = new Gson();
-            gson.toJson(this.keyboardHandler, writer);
+            gson.toJson(this.controlConfiguration, writer);
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
@@ -94,12 +94,18 @@ public class Serializer implements Runnable {
 
     private synchronized void loadSomething() {
         try (FileReader reader = new FileReader(fileName)) {
-            KeyboardHandler loadedKeyboardHandler = (new Gson()).fromJson(reader, KeyboardHandler.class);
-            this.keyboardHandler.copyKeyboardHandler(loadedKeyboardHandler);
+            ControlConfiguration loadedControlConfiguration = (new Gson()).fromJson(reader, ControlConfiguration.class);
+            this.controlConfiguration.copyControlConfiguration(loadedControlConfiguration);
         } catch(FileNotFoundException e) {
             try (FileWriter writer = new FileWriter(fileName)) {
+                this.controlConfiguration.setKey(GLFW_KEY_UP, ControlConfiguration.Action.UP);
+                this.controlConfiguration.setKey(GLFW_KEY_DOWN, ControlConfiguration.Action.DOWN);
+                this.controlConfiguration.setKey(GLFW_KEY_LEFT, ControlConfiguration.Action.LEFT);
+                this.controlConfiguration.setKey(GLFW_KEY_RIGHT, ControlConfiguration.Action.RIGHT);
+                this.controlConfiguration.setKey(GLFW_KEY_Z, ControlConfiguration.Action.UNDO);
+                this.controlConfiguration.setKey(GLFW_KEY_R, ControlConfiguration.Action.RESTART);
                 Gson gson = new Gson();
-                gson.toJson(this.keyboardHandler, writer);
+                gson.toJson(this.controlConfiguration, writer);
             } catch (Exception ex) {
                 System.out.println(ex.getMessage());
             }
