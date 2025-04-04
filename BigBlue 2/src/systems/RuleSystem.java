@@ -58,16 +58,20 @@ public class RuleSystem {
     }
 
     private void checkAndAddRule(Map<String, RuleComponent.Type>[][] grid, int x, int y, int dx, int dy) {
-        if (x + 2 >= 20 || y + 2 >= 20) return;
+        int targetX = x + 2 * dx;
+        int targetY = y + 2 * dy;
+
+        if (targetX < 0 || targetX >= 20 || targetY < 0 || targetY >= 20) return;
 
         Map.Entry<String, RuleComponent.Type> subjEntry = getWordEntry(grid, x, y);
         Map.Entry<String, RuleComponent.Type> isEntry = getWordEntry(grid, x + dx, y + dy);
-        Map.Entry<String, RuleComponent.Type> thirdEntry = getWordEntry(grid, x + 2 * dx, y + 2 * dy);
+        Map.Entry<String, RuleComponent.Type> thirdEntry = getWordEntry(grid, targetX, targetY);
 
         if (subjEntry != null && isEntry != null && thirdEntry != null) {
             if (subjEntry.getValue() == RuleComponent.Type.SUBJECT &&
                     "Is".equals(isEntry.getKey()) &&
                     isEntry.getValue() == RuleComponent.Type.OPERATOR) {
+
                 if (thirdEntry.getValue() == RuleComponent.Type.PROPERTY) {
                     String property = thirdEntry.getKey();
                     if (property.equals("Kill") || property.equals("Defeat")) {
