@@ -3,17 +3,22 @@ package systems;
 import components.PositionComponent;
 import components.RuleComponent;
 import entities.EntityManager;
-
 import java.util.*;
+import systems.ParticleManager;
 
 public class MovementSystem {
     private final EntityManager entityManager;
+    private ParticleManager particleManager;
     private static final Set<String> DESTRUCTIBLE_NAMES = new HashSet<>(Arrays.asList(
             "Wall", "Rock", "Flag", "BigBlue", "Floor", "Grass", "Water", "Lava"
     ));
 
     public MovementSystem(EntityManager entityManager) {
         this.entityManager = entityManager;
+    }
+
+    public void setParticleManager(ParticleManager particleManager) {
+        this.particleManager = particleManager;
     }
 
     public boolean tryMove(int startX, int startY, int dx, int dy, Set<String> pushableNames) {
@@ -41,7 +46,6 @@ public class MovementSystem {
                 }
             }
         }
-
         return true;
     }
 
@@ -79,9 +83,9 @@ public class MovementSystem {
         }
         pos.x = nextX;
         pos.y = nextY;
-
-        checkAndApplySink(nextX, nextY);
-
+        if (entityManager.getComponent(entityId, RuleComponent.class) == null) {
+            checkAndApplySink(nextX, nextY);
+        }
         return true;
     }
 
@@ -119,6 +123,10 @@ public class MovementSystem {
             for (int id : new ArrayList<>(entities)) {
                 if (entityManager.getComponent(id, RuleComponent.class) == null &&
                         DESTRUCTIBLE_NAMES.contains(entityManager.getEntityName(id))) {
+                    PositionComponent pos = entityManager.getComponent(id, PositionComponent.class);
+                    if (pos != null && particleManager != null) {
+                        particleManager.createSparkleEffect(pos.x, pos.y);
+                    }
                     entityManager.destroyEntity(id);
                 }
             }

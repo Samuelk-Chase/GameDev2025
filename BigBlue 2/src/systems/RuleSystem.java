@@ -17,13 +17,12 @@ public class RuleSystem {
 
     public void update() {
         activeRules.clear();
-        transformations.clear(); // Reset transformations each update
+        transformations.clear();
         Map<String, RuleComponent.Type> wordGrid[][] = new HashMap[20][20];
 
         for (int id : entityManager.getAllEntityIds()) {
             RuleComponent rule = entityManager.getComponent(id, RuleComponent.class);
             PositionComponent pos = entityManager.getComponent(id, PositionComponent.class);
-
             if (rule != null && pos != null) {
                 if (wordGrid[pos.y][pos.x] == null) {
                     wordGrid[pos.y][pos.x] = new HashMap<>();
@@ -34,14 +33,13 @@ public class RuleSystem {
 
         for (int y = 0; y < 20; y++) {
             for (int x = 0; x < 20; x++) {
-                checkAndAddRule(wordGrid, x, y, 1, 0); // horizontal
-                checkAndAddRule(wordGrid, x, y, 0, 1); // vertical
+                checkAndAddRule(wordGrid, x, y, 1, 0);
+                checkAndAddRule(wordGrid, x, y, 0, 1);
             }
         }
         System.out.println("Transformations: " + transformations);
     }
 
-    // New method to resolve transformation chains
     public String getFinalTransformation(String name) {
         Set<String> visited = new HashSet<>();
         String currentName = name;
@@ -56,7 +54,7 @@ public class RuleSystem {
         if (x < 0 || x >= 20 || y < 0 || y >= 20 || grid[y][x] == null || grid[y][x].isEmpty()) {
             return null;
         }
-        return grid[y][x].entrySet().iterator().next(); // Assumes one word per position
+        return grid[y][x].entrySet().iterator().next();
     }
 
     private void checkAndAddRule(Map<String, RuleComponent.Type>[][] grid, int x, int y, int dx, int dy) {
@@ -71,8 +69,12 @@ public class RuleSystem {
                     "Is".equals(isEntry.getKey()) &&
                     isEntry.getValue() == RuleComponent.Type.OPERATOR) {
                 if (thirdEntry.getValue() == RuleComponent.Type.PROPERTY) {
+                    String property = thirdEntry.getKey();
+                    if (property.equals("Kill") || property.equals("Defeat")) {
+                        property = "Sink";
+                    }
                     activeRules.putIfAbsent(subjEntry.getKey(), new HashSet<>());
-                    activeRules.get(subjEntry.getKey()).add(thirdEntry.getKey());
+                    activeRules.get(subjEntry.getKey()).add(property);
                 } else if (thirdEntry.getValue() == RuleComponent.Type.SUBJECT) {
                     transformations.put(subjEntry.getKey(), thirdEntry.getKey());
                 }
