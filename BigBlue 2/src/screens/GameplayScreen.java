@@ -13,6 +13,8 @@ import edu.usu.graphics.Texture;
 import entities.EntityBlueprint;
 import entities.EntityManager;
 import entities.GameState;
+import serializer.ControlConfiguration;
+import serializer.Serializer;
 import systems.Animation;
 import systems.ConditionSystem;
 import systems.MovementSystem;
@@ -30,8 +32,10 @@ public class GameplayScreen extends Screen {
     private EntityManager entityManager;
     private Map<Character, EntityBlueprint> charMap;
     private int currentLevelIndex = 0;
+    private ControlConfiguration controlConfiguration;
     private final Map<String, Color> textureTints = new HashMap<>();
-    private final Set<Integer> keysPressedLastFrame = new HashSet<>();
+    private Set<Integer> keysPressedLastFrame = new HashSet<>();
+    private final HashMap<ControlConfiguration.Action, KeyboardHandler.KeyAction> controlActions = new HashMap<>();
     private RuleSystem ruleSystem;
     private MovementSystem movementSystem;
     private ConditionSystem conditionSystem;
@@ -46,13 +50,12 @@ public class GameplayScreen extends Screen {
     private Set<Integer> previousYouEntities = new HashSet<>();
     private Set<Integer> previousWinEntities = new HashSet<>();
     private MenuScreen mainMenu; // Reference to the main menu screen
-
     private SoundManager soundManager;
     private Sound moveSound;
     private Sound winSound;
     private Sound isWinSound;
-
-    public GameplayScreen(Graphics2D graphics, MenuScreen mainMenu) {
+    
+    public GameplayScreen(Graphics2D graphics, MenuScreen mainMenu, ControlConfiguration controlConfiguration) {
         super(graphics);
         this.mainMenu = mainMenu; // Store the main menu reference
         this.charMap = new HashMap<>();
@@ -60,12 +63,13 @@ public class GameplayScreen extends Screen {
         this.ruleSystem = new RuleSystem(entityManager);
         this.movementSystem = new MovementSystem(entityManager);
         this.conditionSystem = new ConditionSystem(entityManager, ruleSystem);
-        forceAction(GLFW_KEY_RIGHT, (_) -> handleMovement(1, 0));
-        forceAction(GLFW_KEY_LEFT, (_) -> handleMovement(-1, 0));
-        forceAction(GLFW_KEY_UP, (_) -> handleMovement(0, -1));
-        forceAction(GLFW_KEY_DOWN, (_) -> handleMovement(0, 1));
-        forceAction(GLFW_KEY_Z, (_) -> undo());
-        forceAction(GLFW_KEY_R, (_) -> resetLevel());
+        this.controlConfiguration = controlConfiguration;
+        controlActions.put(ControlConfiguration.Action.RIGHT, (_) -> handleMovement(1, 0));
+        controlActions.put(ControlConfiguration.Action.LEFT, (_) -> handleMovement(-1, 0));
+        controlActions.put(ControlConfiguration.Action.UP, (_) -> handleMovement(0, -1));
+        controlActions.put(ControlConfiguration.Action.DOWN, (_) -> handleMovement(0, 1));
+        controlActions.put(ControlConfiguration.Action.UNDO, (_) -> undo());
+        controlActions.put(ControlConfiguration.Action.RESTART, (_) -> resetLevel());
         loadLevels();
         initializeCharMap();
         initializeTextureTints();
@@ -397,6 +401,16 @@ public class GameplayScreen extends Screen {
 
     @Override
     public void processInput() {
+        Set<Integer> prevFrame = keysPressedLastFrame;
+        keysPressedLastFrame = new HashSet<>();
+        for (Integer key : controlConfiguration.getKeys()) {
+            if (glfwGetKey(graphics.getWindow(), key) == GLFW_PRESS) {
+                if (!prevFrame.contains(key)) {
+                    controlActions.get(controlConfiguration.getAction(key)).run(0);
+                }
+                keysPressedLastFrame.add(key);
+            }
+        }
     }
 
     @Override
