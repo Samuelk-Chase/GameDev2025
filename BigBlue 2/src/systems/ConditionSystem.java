@@ -21,31 +21,31 @@ public class ConditionSystem {
     public int checkConditions() {
         Set<Integer> youEntities = getYouEntities();
         if (youEntities.isEmpty()) {
-            return -1; // Loss condition: no "You" entities remain
+            return -1;
         }
         for (int youId : youEntities) {
             if (entityManager.getComponent(youId, RuleComponent.class) != null) {
-                continue; // Skip text entities
+                continue;
             }
             String youName = entityManager.getEntityName(youId);
             if (!DESTRUCTIBLE_NAMES.contains(youName)) {
-                continue; // Skip non-destructible entities
+                continue;
             }
             PositionComponent youPos = entityManager.getComponent(youId, PositionComponent.class);
             List<Integer> entitiesAtPos = getEntitiesAt(youPos.x, youPos.y);
             for (int id : entitiesAtPos) {
-                if (id == youId) continue; // Skip the "You" entity itself
+                if (id == youId) continue;
                 String name = entityManager.getEntityName(id);
                 Set<String> props = RuleSystem.activeRules.getOrDefault(name, new HashSet<>());
-                if (props.contains("Kill")) { // Changed from "Defeat" to "Kill"
+                if (props.contains("Kill")) {
                     entityManager.destroyEntity(youId);
-                    break; // Destroy the "You" entity and exit the loop
+                    break;
                 }
             }
         }
-        youEntities = getYouEntities(); // Recheck after potential destruction
+        youEntities = getYouEntities();
         if (youEntities.isEmpty()) {
-            return -1; // Loss condition: no "You" entities remain
+            return -1;
         }
 
         Set<Integer> winEntities = getWinEntities();
@@ -54,17 +54,17 @@ public class ConditionSystem {
             for (int winId : winEntities) {
                 PositionComponent winPos = entityManager.getComponent(winId, PositionComponent.class);
                 if (youPos != null && winPos != null && youPos.x == winPos.x && youPos.y == winPos.y) {
-                    return 1; // Win condition: "You" entity on "Win" entity
+                    return 1;
                 }
             }
         }
-        return 0; // No win or loss condition met
+        return 0;
     }
 
     public Set<Integer> getYouEntities() {
         Set<Integer> youEntities = new HashSet<>();
         for (int id : entityManager.getAllEntityIds()) {
-            if (entityManager.getComponent(id, RuleComponent.class) != null) continue; // Skip text
+            if (entityManager.getComponent(id, RuleComponent.class) != null) continue;
             String name = entityManager.getEntityName(id);
             Set<String> props = RuleSystem.activeRules.getOrDefault(name, new HashSet<>());
             if (props.contains("You")) {

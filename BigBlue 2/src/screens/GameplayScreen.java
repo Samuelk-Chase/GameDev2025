@@ -49,7 +49,7 @@ public class GameplayScreen extends Screen {
     private ParticleManager particleManager;
     private Set<Integer> previousYouEntities = new HashSet<>();
     private Set<Integer> previousWinEntities = new HashSet<>();
-    private MenuScreen mainMenu; // Reference to the main menu screen
+    private MenuScreen mainMenu;
     private SoundManager soundManager;
     private Sound moveSound;
     private Sound winSound;
@@ -57,7 +57,7 @@ public class GameplayScreen extends Screen {
 
     public GameplayScreen(Graphics2D graphics, MenuScreen mainMenu, ControlConfiguration controlConfiguration) {
         super(graphics);
-        this.mainMenu = mainMenu; // Store the main menu reference
+        this.mainMenu = mainMenu;
         this.charMap = new HashMap<>();
         this.entityManager = new EntityManager(this);
         this.ruleSystem = new RuleSystem(entityManager);
@@ -120,7 +120,7 @@ public class GameplayScreen extends Screen {
         if (currentLevelIndex < levels.size()) {
             setLevel(levels.get(currentLevelIndex));
         } else {
-            setNextScreen(mainMenu); // Transition to main menu when no more levels
+            setNextScreen(mainMenu);
         }
     }
 
@@ -153,15 +153,12 @@ public class GameplayScreen extends Screen {
             try {
                 SpriteComponent sprite;
                 if (c == 'b' || c == 'B') {
-                    // BigBlue: assign high Z-index
                     Texture texture = new Texture(fullPath);
                     sprite = new SpriteComponent(texture, blueprint.spritePath);
                     sprite.setZIndex(10);
                 } else {
-                    // Other entities: use an animation and default z-index
                     Animation animation = new Animation(fullPath, 3, 200);
                     sprite = new SpriteComponent(animation, blueprint.spritePath);
-                    // If it's Floor, set it to the back (-1), otherwise default to 0.
                     if (blueprint.word.equals("Floor")) {
                         sprite.setZIndex(-1);
                     } else {
@@ -240,7 +237,7 @@ public class GameplayScreen extends Screen {
                     spriteComp.setZIndex(0);
                 }
             } catch (Exception e) {
-                // Handle exception if needed
+
             }
         }
     }
@@ -319,7 +316,6 @@ public class GameplayScreen extends Screen {
         }
 
         if (anyMoved) {
-            // Save previous YOU and WIN entities
             previousYouEntities.clear();
             previousYouEntities.addAll(conditionSystem.getYouEntities());
             previousWinEntities.clear();
@@ -328,17 +324,14 @@ public class GameplayScreen extends Screen {
             ruleSystem.update();
             applyTransformations();
 
-            // Detect new YOU and WIN entities
             Set<Integer> newYouEntities = conditionSystem.getYouEntities();
             Set<Integer> newWinEntities = conditionSystem.getWinEntities();
 
-            // Find newly added entities
             Set<Integer> addedYouEntities = new HashSet<>(newYouEntities);
             addedYouEntities.removeAll(previousYouEntities);
             Set<Integer> addedWinEntities = new HashSet<>(newWinEntities);
             addedWinEntities.removeAll(previousWinEntities);
 
-            // Trigger sparkle effects for new YOU and WIN tiles
             for (int id : addedYouEntities) {
                 PositionComponent pos = entityManager.getComponent(id, PositionComponent.class);
                 if (pos != null) {

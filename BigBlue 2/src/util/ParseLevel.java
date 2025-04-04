@@ -25,19 +25,19 @@ public class  ParseLevel {
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                if (line.trim().isEmpty()) continue; // Skip empty lines before a level
+                if (line.trim().isEmpty()) continue;
 
-                // Read level name
+
                 String name = line.trim();
 
-                // Read dimensions
+
                 line = reader.readLine();
                 if (line == null) break;
                 String[] dimensions = line.split(" x ");
                 int width = Integer.parseInt(dimensions[0]);
                 int height = Integer.parseInt(dimensions[1]);
 
-                // Read gameplay layer
+
                 char[][] gameplayLayer = new char[height][width];
                 for (int y = 0; y < height; y++) {
                     line = reader.readLine();
@@ -47,7 +47,6 @@ public class  ParseLevel {
                     gameplayLayer[y] = row.toCharArray();
                 }
 
-                // Read rule layer
                 char[][] ruleLayer = new char[height][width];
                 for (int y = 0; y < height; y++) {
                     line = reader.readLine();

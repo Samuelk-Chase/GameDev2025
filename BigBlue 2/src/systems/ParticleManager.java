@@ -10,9 +10,9 @@ import java.util.List;
 
 public class ParticleManager {
     private List<ParticleEmitter> emitters = new ArrayList<>();
-    private float gridLeft, gridBottom;  // Bottom-left corner of the grid in NDC
-    private float tileWidth, tileHeight; // Tile dimensions in NDC
-    private float particleSizeNDC;       // Particle size in NDC
+    private float gridLeft, gridBottom;
+    private float tileWidth, tileHeight;
+    private float particleSizeNDC;
 
     public ParticleManager(float gridLeft, float gridBottom, float tileWidth, float tileHeight, float particleSizeNDC) {
         this.gridLeft = gridLeft;
@@ -24,17 +24,16 @@ public class ParticleManager {
 
     /** Creates a particle effect for object destruction, originating from the tile's center. */
     public void createDestructionEffect(float gridX, float gridY) {
-        // Calculate center of the tile in NDC
         float ndcX = gridLeft + (gridX + 0.5f) * tileWidth;
         float ndcY = gridBottom + (gridY + 0.5f) * tileHeight;
         ParticleEmitter emitter = new ParticleEmitter(particleSizeNDC);
         emitter.emit(
-                ndcX, ndcY,         // Position
-                90,                 // Number of particles
-                Color.BLACK,        // Color
-                0.5f,                 // Speed (units per second in NDC)
-                0.7f,               // Lifetime in seconds
-                0, 0                // No acceleration
+                ndcX, ndcY,
+                90,
+                Color.BLACK,
+                0.5f,
+                0.7f,
+                0, 0
         );
         emitters.add(emitter);
     }
@@ -43,32 +42,31 @@ public class ParticleManager {
     public void createFireworks() {
         int numFireworks = 5;
         for (int i = 0; i < numFireworks; i++) {
-            float x = (float) Math.random() * 1.6f - 0.8f; // Random x between -0.8 and 0.8
-            float y = -0.8f + (float) Math.random() * 0.2f; // Near bottom of screen
+            float x = (float) Math.random() * 1.6f - 0.8f;
+            float y = -0.8f + (float) Math.random() * 0.2f;
             ParticleEmitter emitter = new ParticleEmitter(particleSizeNDC);
             emitter.emit(
-                    x, y,               // Position
-                    50,                 // Number of particles
-                    Color.YELLOW,       // Color
-                    5,                // Speed
-                    2.0f,               // Lifetime
-                    0, -50              // Gravity (downward acceleration)
+                    x, y,
+                    50,
+                    Color.YELLOW,
+                    5,
+                    2.0f,
+                    0, -50
             );
             emitters.add(emitter);
         }
     }
 
     public void createSparkleEffect(float gridX, float gridY) {
-        // Calculate tile boundaries in NDC (Normalized Device Coordinates)
         float left = gridLeft + gridX * tileWidth;
         float bottom = gridBottom + gridY * tileHeight;
         float right = left + tileWidth;
         float top = bottom + tileHeight;
 
-        // Define offset to spawn particles slightly outside the tile
-        float offset = 0.05f; // Adjust this value as needed
 
-        // Calculate expanded boundaries for particle spawning
+        float offset = 0.05f;
+
+
         float expandedLeft = left - offset;
         float expandedBottom = bottom - offset;
         float expandedRight = right + offset;

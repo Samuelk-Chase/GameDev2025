@@ -5,9 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8858ee06-ea5c-4baa-8898-f17b08ca1729" name="Changes" comment="Got movement/pushing done">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/SpriteComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/SpriteComponent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ScreenManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ScreenManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/screens/Button.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/Button.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/screens/GameplayScreen.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/screens/GameplayScreen.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/systems/Animation.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/systems/Animation.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/systems/ConditionSystem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/systems/ConditionSystem.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/systems/ParticleManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/systems/ParticleManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/util/ParseLevel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/util/ParseLevel.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
