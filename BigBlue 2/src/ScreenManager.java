@@ -104,7 +104,6 @@ public class ScreenManager {
             }
         }
         System.out.println("System exiting...");
-        graphics.close();
     }
 
     public void shutdown() {

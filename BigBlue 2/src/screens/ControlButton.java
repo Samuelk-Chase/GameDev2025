@@ -3,6 +3,8 @@ package screens;
 import edu.usu.graphics.Graphics2D;
 import serializer.ControlConfiguration;
 
+import java.util.HashMap;
+
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
 
@@ -12,6 +14,7 @@ public class ControlButton extends Button{
     private final ControlConfiguration controlConfiguration;
     private final long window;
     private final String action;
+    private final HashMap<Integer, String> keyNames = new HashMap<>();
     private Boolean screenPauseInput;
 
     public ControlButton(float x, float y, float width, float height, String action, Graphics2D graphics, Integer key, ControlConfiguration controlConfiguration, Boolean screenPauseInput) {
@@ -20,12 +23,17 @@ public class ControlButton extends Button{
         this.screenPauseInput = screenPauseInput;
         this.window = graphics.getWindow();
         this.controlConfiguration = controlConfiguration;
+        keyNames.put(GLFW_KEY_UP, "^");
+        keyNames.put(GLFW_KEY_DOWN, "v");
+        keyNames.put(GLFW_KEY_LEFT, "<");
+        keyNames.put(GLFW_KEY_RIGHT, ">");
         setKey(key);
     }
 
     private void setKey(Integer newKey) {
         currentKey = newKey;
-        text = action + ": " + glfwGetKeyName(currentKey, 0);
+        String keyName = glfwGetKeyName(currentKey, 0);
+        text = action + ": " + (keyName != null ? keyName : keyNames.get(currentKey));
         glfwSetKeyCallback(window, null);
     }
 
