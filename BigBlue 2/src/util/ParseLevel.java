@@ -43,7 +43,7 @@ public class  ParseLevel {
                     line = reader.readLine();
                     if (line == null) throw new Exception("Incomplete gameplay layer");
                     String row = line.length() > width ? line.substring(0, width) : line;
-                    row = String.format("%-" + width + "s", row); // Pad with spaces if short
+                    row = String.format("%-" + width + "s", row);
                     gameplayLayer[y] = row.toCharArray();
                 }
 
@@ -52,7 +52,7 @@ public class  ParseLevel {
                     line = reader.readLine();
                     if (line == null) throw new Exception("Incomplete rule layer");
                     String row = line.length() > width ? line.substring(0, width) : line;
-                    row = String.format("%-" + width + "s", row); // Pad with spaces if short
+                    row = String.format("%-" + width + "s", row); 
                     ruleLayer[y] = row.toCharArray();
                 }
 
