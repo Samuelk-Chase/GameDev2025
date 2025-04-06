@@ -6,10 +6,9 @@ import serializer.Serializer;
 import static org.lwjgl.glfw.GLFW.*;
 
 public class ScreenManager {
-    private double lastTime;
     private final Graphics2D graphics;
     private Screen currentScreen;
-    private Serializer serializer;
+    private final Serializer serializer;
 
     public ScreenManager(Graphics2D graphics) {
         serializer = new Serializer();
@@ -60,7 +59,7 @@ public class ScreenManager {
             }));
         }
         levelButtons[levelButtons.length - 1] = new MenuScreen.ButtonBundle("Back", MenuButton.makeCreator((_) -> levelSelectionScreen.setNextScreen(levelSelectionScreen.getBackScreen())));
-        levelSelectionScreen.addButtons(0.175f, levelButtons);
+        levelSelectionScreen.addButtons(0.125f, levelButtons);
         pauseMenu.addButtons(0.25f, new MenuScreen.ButtonBundle[] {
                 new MenuScreen.ButtonBundle("Main Menu", MenuButton.makeCreator((_) -> pauseMenu.setNextScreen(mainMenu))),
                 new MenuScreen.ButtonBundle("Resume", MenuButton.makeCreator((_) -> pauseMenu.setNextScreen(gameplayScreen))),
@@ -89,7 +88,7 @@ public class ScreenManager {
     }
 
     public void run() {
-        lastTime = glfwGetTime();
+        double lastTime = glfwGetTime();
         final double targetFPS = 60.0;
         final double secondsPerFrame = 1.0 / targetFPS;
         while (!graphics.shouldClose()) {

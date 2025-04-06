@@ -11,17 +11,23 @@ public abstract class Screen {
     protected final Graphics2D graphics;
     protected Screen nextScreen = this;
     protected Screen backScreen = this;
-    protected final float left = -1f;
-    protected final float width = 2f;
-    protected final float height =  820f/1024f * width;
-    protected final float top = 0 - height/2f;
-    protected final Rectangle screenRectangle = new Rectangle(left, top, width, height);
+    protected static final float left = -1f;
+    protected static final float width = 2f;
+    protected static float height;
+    protected static float top;
+    protected static Rectangle screenRectangle;
     protected Boolean pauseInput = false;
 
     public Screen(Graphics2D graphics) {
         this.keyboardHandler = new KeyboardHandler(graphics.getWindow());
         forceAction(GLFW_KEY_ESCAPE, (_) -> this.nextScreen = this.backScreen);
         this.graphics = graphics;
+    }
+
+    public static void setDimensions(int pixelWidth, int pixelHeight) {
+        height = width / pixelWidth * pixelHeight;
+        top = height / -2f;
+        screenRectangle = new Rectangle(left, top, width, height);
     }
 
     public void addAction(Integer key, KeyboardHandler.KeyAction action) throws Exception {
