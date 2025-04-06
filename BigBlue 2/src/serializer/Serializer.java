@@ -98,10 +98,10 @@ public class Serializer implements Runnable {
             this.controlConfiguration.copyControlConfiguration(loadedControlConfiguration);
         } catch(FileNotFoundException e) {
             try (FileWriter writer = new FileWriter(fileName)) {
-                this.controlConfiguration.setKey(GLFW_KEY_UP, ControlConfiguration.Action.UP);
-                this.controlConfiguration.setKey(GLFW_KEY_DOWN, ControlConfiguration.Action.DOWN);
-                this.controlConfiguration.setKey(GLFW_KEY_LEFT, ControlConfiguration.Action.LEFT);
-                this.controlConfiguration.setKey(GLFW_KEY_RIGHT, ControlConfiguration.Action.RIGHT);
+                this.controlConfiguration.setKey(GLFW_KEY_W, ControlConfiguration.Action.UP);
+                this.controlConfiguration.setKey(GLFW_KEY_S, ControlConfiguration.Action.DOWN);
+                this.controlConfiguration.setKey(GLFW_KEY_A, ControlConfiguration.Action.LEFT);
+                this.controlConfiguration.setKey(GLFW_KEY_D, ControlConfiguration.Action.RIGHT);
                 this.controlConfiguration.setKey(GLFW_KEY_Z, ControlConfiguration.Action.UNDO);
                 this.controlConfiguration.setKey(GLFW_KEY_R, ControlConfiguration.Action.RESTART);
                 Gson gson = new Gson();
