@@ -5,8 +5,8 @@ import static org.lwjgl.glfw.GLFW.glfwSetErrorCallback;
 
 public class StarterProject {
     public static void main(String[] args) {
-        int width = 912;
-        int height = 513;
+        int width = 1000;
+        int height = 900;
         screens.Screen.setDimensions(width, height);
         try (Graphics2D graphics = new Graphics2D(width, height, "Big Blue - Level Test")) {
             graphics.initialize(Color.BLACK);

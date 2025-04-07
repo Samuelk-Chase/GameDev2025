@@ -18,7 +18,7 @@ public class ControlButton extends Button{
     private Boolean screenPauseInput;
 
     public ControlButton(float x, float y, float width, float height, String action, Graphics2D graphics, Integer key, ControlConfiguration controlConfiguration, Boolean screenPauseInput) {
-        super(x, y, width, height, "", graphics);
+        super(x, y, width, height, action + ": X", graphics);
         this.action = action;
         this.screenPauseInput = screenPauseInput;
         this.window = graphics.getWindow();

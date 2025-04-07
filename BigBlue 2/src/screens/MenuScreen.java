@@ -12,8 +12,6 @@ import static org.lwjgl.glfw.GLFW.*;
 public class MenuScreen extends Screen {
     private int buttonIndex = 0;
     private final ArrayList<Button> buttons = new ArrayList<>();
-    private static final Color NORMAL_BORDER_COLOR = Color.BLACK;
-    private static final Color SELECTED_BORDER_COLOR = Color.WHITE;
     private static final Color NORMAL_TEXT_COLOR = Color.WHITE;
     private static final Color SELECTED_TEXT_COLOR = Color.YELLOW;
     private Texture backgroundTexture;
@@ -26,7 +24,7 @@ public class MenuScreen extends Screen {
 
     public MenuScreen(Graphics2D graphics) {
         super(graphics);
-        backgroundTexture = new Texture("resources/images/image.png");
+        backgroundTexture = new Texture("resources/images/background.png");
         textureWidth = backgroundTexture.getWidth();
         textureHeight = backgroundTexture.getHeight();
 
@@ -90,9 +88,9 @@ public class MenuScreen extends Screen {
         }
         for (int i = 0; i < buttons.size(); i++) {
             if (i == buttonIndex) {
-                buttons.get(i).render(SELECTED_BORDER_COLOR, Button.highlightColor, SELECTED_TEXT_COLOR);
+                buttons.get(i).render(Button.highlightColor, SELECTED_TEXT_COLOR);
             } else {
-                buttons.get(i).render(NORMAL_BORDER_COLOR, Button.backgroundColor, NORMAL_TEXT_COLOR);
+                buttons.get(i).render(Button.backgroundColor, NORMAL_TEXT_COLOR);
             }
         }
     }

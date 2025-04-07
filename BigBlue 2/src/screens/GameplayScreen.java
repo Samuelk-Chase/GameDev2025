@@ -436,10 +436,10 @@ public class GameplayScreen extends Screen {
 
     @Override
     public void render() {
-        float gridLeft = -0.8f;
-        float gridBottom = -0.8f;
-        float gridWidth = 1.6f;
-        float gridHeight = 1.6f;
+        float gridLeft = left;
+        float gridBottom = top;
+        float gridWidth = width;
+        float gridHeight = height;
         float tileWidth = gridWidth / currentLevel.width;
         float tileHeight = gridHeight / currentLevel.height;
 

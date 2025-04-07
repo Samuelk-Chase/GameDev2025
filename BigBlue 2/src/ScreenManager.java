@@ -1,3 +1,4 @@
+import edu.usu.graphics.Color;
 import edu.usu.graphics.Graphics2D;
 import screens.*;
 import serializer.ControlConfiguration;
@@ -30,7 +31,7 @@ public class ScreenManager {
         serializer.loadControls(controlConfiguration);
         GameplayScreen gameplayScreen = new GameplayScreen(graphics, mainMenu, controlConfiguration);
         MenuScreen creditsScreen = new MenuScreen(graphics);
-        mainMenu.addButtons(0.25f, new MenuScreen.ButtonBundle[] {
+        mainMenu.addButtons(0.2f, new MenuScreen.ButtonBundle[] {
           new MenuScreen.ButtonBundle("Play", MenuButton.makeCreator((_) -> {
                   levelSelectionScreen.setBackScreen(mainMenu);
                   mainMenu.setNextScreen(levelSelectionScreen);
@@ -123,6 +124,7 @@ public class ScreenManager {
 
     private void render() {
         graphics.begin();
+        graphics.draw(Screen.screenRectangle, Color.BLACK);
         currentScreen.render();
         graphics.end();
     }

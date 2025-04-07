@@ -11,11 +11,11 @@ public abstract class Screen {
     protected final Graphics2D graphics;
     protected Screen nextScreen = this;
     protected Screen backScreen = this;
-    protected static final float left = -1f;
-    protected static final float width = 2f;
+    protected static float left;
+    protected static float width;
     protected static float height;
     protected static float top;
-    protected static Rectangle screenRectangle;
+    public static Rectangle screenRectangle;
     protected Boolean pauseInput = false;
 
     public Screen(Graphics2D graphics) {
@@ -25,8 +25,14 @@ public abstract class Screen {
     }
 
     public static void setDimensions(int pixelWidth, int pixelHeight) {
-        height = width / pixelWidth * pixelHeight;
-        top = height / -2f;
+        float totalWidth = 2f;
+        float totalLeft = -1f;
+        float totalHeight = totalWidth / pixelWidth * pixelHeight;
+        float totalTop = totalHeight / -2f;
+        width = Math.min(totalWidth, totalHeight);
+        left = totalLeft + (totalWidth - width) / 2f;
+        height = width;
+        top = totalTop + (totalHeight - height) / 2f;
         screenRectangle = new Rectangle(left, top, width, height);
     }
 
