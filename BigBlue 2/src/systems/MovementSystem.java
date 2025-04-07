@@ -21,7 +21,7 @@ public class MovementSystem {
         this.particleManager = particleManager;
     }
 
-    public boolean tryMove(int startX, int startY, int dx, int dy, Set<String> pushableNames) {
+    public boolean tryMove(int startX, int startY, int dx, int dy, Set<String> pushableNames, Set<String> youNames) {
         int targetX = startX + dx;
         int targetY = startY + dy;
 
@@ -34,14 +34,19 @@ public class MovementSystem {
             RuleComponent ruleComp = entityManager.getComponent(id, RuleComponent.class);
             if (ruleComp == null) {
                 Set<String> props = RuleSystem.activeRules.get(name);
-                if (props != null && props.contains("Stop") && !pushableNames.contains(name)) {
+                if ((props != null && props.contains("Stop") && !pushableNames.contains(name))) {
                     return false;
+                } else if (youNames.contains(name)) {
+                    PositionComponent pos = entityManager.getComponent(id, PositionComponent.class);
+                    if (!tryMove(pos.x, pos.y, dx, dy, pushableNames, youNames)) {
+                        return false;
+                    }
                 }
             }
         }
         for (int id : entitiesAtTarget) {
             if (isPushable(id, pushableNames)) {
-                if (!tryPush(id, dx, dy, pushableNames, 0)) {
+                if (!tryPush(id, dx, dy, pushableNames, youNames)) {
                     return false;
                 }
             }
@@ -49,8 +54,8 @@ public class MovementSystem {
         return true;
     }
 
-    private boolean tryPush(int entityId, int dx, int dy, Set<String> pushableNames, int depth) {
-        if (depth > 5) return false;
+    private boolean tryPush(int entityId, int dx, int dy, Set<String> pushableNames, Set<String> youNames) {
+//        if (depth > 5) return false;
 
         PositionComponent pos = entityManager.getComponent(entityId, PositionComponent.class);
         if (pos == null) return false;
@@ -60,7 +65,7 @@ public class MovementSystem {
         List<Integer> entitiesAtNext = getEntitiesAt(nextX, nextY);
 
         for (int id : entitiesAtNext) {
-            if (id == entityId) continue;
+//            if (id == entityId) continue;
             String name = entityManager.getEntityName(id);
             if (name.equals("Hedge")) {
                 return false;
@@ -70,13 +75,19 @@ public class MovementSystem {
                 Set<String> props = RuleSystem.activeRules.get(name);
                 if (props != null && props.contains("Stop") && !pushableNames.contains(name)) {
                     return false;
+                } else if (youNames.contains(name)) {
+                    PositionComponent youPos = entityManager.getComponent(id, PositionComponent.class);
+                    if (!tryMove(youPos.x, youPos.y, dx, dy, pushableNames, youNames)) {
+                        return false;
+                    }
                 }
             }
         }
+
         for (int id : entitiesAtNext) {
-            if (id == entityId) continue;
+//            if (id == entityId) continue;
             if (isPushable(id, pushableNames)) {
-                if (!tryPush(id, dx, dy, pushableNames, depth + 1)) {
+                if (!tryPush(id, dx, dy, pushableNames, youNames)) {
                     return false;
                 }
             }

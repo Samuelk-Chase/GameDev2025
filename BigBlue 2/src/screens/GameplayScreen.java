@@ -14,7 +14,6 @@ import entities.EntityBlueprint;
 import entities.EntityManager;
 import entities.GameState;
 import serializer.ControlConfiguration;
-import serializer.Serializer;
 import systems.Animation;
 import systems.ConditionSystem;
 import systems.MovementSystem;
@@ -40,10 +39,6 @@ public class GameplayScreen extends Screen {
     private MovementSystem movementSystem;
     private ConditionSystem conditionSystem;
     private final Stack<GameState> undoStack = new Stack<>();
-    private float gridLeft = -0.8f;
-    private float gridBottom = -0.8f;
-    private float gridWidth = 1.6f;
-    private float gridHeight = 1.6f;
     private float tileWidth;
     private float tileHeight;
     private ParticleManager particleManager;
@@ -95,14 +90,14 @@ public class GameplayScreen extends Screen {
 
     private void setLevel(ParseLevel.LevelData level) {
         this.currentLevel = level;
-        this.tileWidth = gridWidth / currentLevel.width;
-        this.tileHeight = gridHeight / currentLevel.height;
+        this.tileWidth = width / currentLevel.width;
+        this.tileHeight = height / currentLevel.height;
         entityManager.clear();
         undoStack.clear();
         loadLevelEntities();
         ruleSystem.update();
         applyTransformations();
-        particleManager = new ParticleManager(gridLeft, gridBottom, tileWidth, tileHeight, 0.02f);
+        particleManager = new ParticleManager(left, top, tileWidth, tileHeight, 0.02f);
         movementSystem.setParticleManager(particleManager);
     }
 
@@ -294,12 +289,12 @@ public class GameplayScreen extends Screen {
     private void handleMovement(int dx, int dy) {
         Set<Integer> youEntities = conditionSystem.getYouEntities();
         if (youEntities.isEmpty()) return;
-        for (int id : youEntities) {
-            String name = entityManager.getEntityName(id);
-            Set<String> props = ruleSystem.activeRules.getOrDefault(name, new HashSet<>());
-            System.out.println("You entity " + name + " has properties: " + props);
-        }
-        System.out.println("Active rules: " + ruleSystem.activeRules);
+//        for (int id : youEntities) {
+//            String name = entityManager.getEntityName(id);
+//            Set<String> props = ruleSystem.activeRules.getOrDefault(name, new HashSet<>());
+//            System.out.println("You entity " + name + " has properties: " + props);
+//        }
+//        System.out.println("Active rules: " + ruleSystem.activeRules);
         GameState currentState = entityManager.saveState();
         undoStack.push(currentState);
 
@@ -374,14 +369,16 @@ public class GameplayScreen extends Screen {
         int targetY = pos.y + dy;
 
         Set<String> pushableNames = getNamesWithProperty("Push");
+        Set<String> youNames = getNamesWithProperty("You");
 
-        if (movementSystem.tryMove(pos.x, pos.y, dx, dy, pushableNames)) {
+        if (movementSystem.tryMove(pos.x, pos.y, dx, dy, pushableNames, youNames)) {
             pos.x = targetX;
             pos.y = targetY;
             movementSystem.checkAndApplySink(targetX, targetY);
-            if (!moveSound.isPlaying()) {
-                moveSound.play();
+            if (moveSound.isPlaying()) {
+                moveSound.stop();
             }
+            moveSound.play();
             return true;
         }
         return false;
@@ -436,12 +433,8 @@ public class GameplayScreen extends Screen {
 
     @Override
     public void render() {
-        float gridLeft = left;
-        float gridBottom = top;
-        float gridWidth = width;
-        float gridHeight = height;
-        float tileWidth = gridWidth / currentLevel.width;
-        float tileHeight = gridHeight / currentLevel.height;
+        float tileWidth = width / currentLevel.width;
+        float tileHeight = height / currentLevel.height;
 
         List<Integer> entities = new ArrayList<>(entityManager.getAllEntityIds());
         entities.sort((id1, id2) -> {
@@ -457,8 +450,8 @@ public class GameplayScreen extends Screen {
                 PositionComponent pos = entityManager.getComponent(entityId, PositionComponent.class);
                 SpriteComponent sprite = entityManager.getComponent(entityId, SpriteComponent.class);
                 if (pos != null && sprite != null) {
-                    float ndcX = gridLeft + pos.x * tileWidth;
-                    float ndcY = gridBottom + pos.y * tileHeight;
+                    float ndcX = left + pos.x * tileWidth;
+                    float ndcY = top + pos.y * tileHeight;
                     Rectangle destinationRect = new Rectangle(ndcX, ndcY, tileWidth, tileHeight);
                     Color tint = textureTints.getOrDefault(sprite.getTexturePath(), Color.WHITE);
                     Texture texture = sprite.getTexture();

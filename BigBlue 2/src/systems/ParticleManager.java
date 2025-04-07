@@ -2,7 +2,6 @@ package systems;
 
 import edu.usu.graphics.Color;
 import edu.usu.graphics.Graphics2D;
-import systems.ParticleEmitter;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -63,22 +62,18 @@ public class ParticleManager {
         float right = left + tileWidth;
         float top = bottom + tileHeight;
 
-
         float offset = 0.05f;
-
 
         float expandedLeft = left - offset;
         float expandedBottom = bottom - offset;
         float expandedRight = right + offset;
         float expandedTop = top + offset;
 
-
         ParticleEmitter emitter = new ParticleEmitter(particleSizeNDC);
         int count = 50;
         float speed = 0.09f;
         float lifetime = 1.5f;
         Color color = Color.YELLOW;
-
 
         for (int i = 0; i < count; i++) {
             int edge = (int) (Math.random() * 4);
