@@ -111,7 +111,7 @@ public class MovementSystem {
         return entities;
     }
 
-    private boolean isPushable(int entityId, Set<String> pushableNames) {
+    public boolean isPushable(int entityId, Set<String> pushableNames) {
         if (entityManager.getComponent(entityId, RuleComponent.class) != null) {
             return true;
         }

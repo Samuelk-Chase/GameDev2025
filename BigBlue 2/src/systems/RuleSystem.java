@@ -37,7 +37,6 @@ public class RuleSystem {
                 checkAndAddRule(wordGrid, x, y, 0, 1);
             }
         }
-        System.out.println("Transformations: " + transformations);
     }
 
     public String getFinalTransformation(String name) {

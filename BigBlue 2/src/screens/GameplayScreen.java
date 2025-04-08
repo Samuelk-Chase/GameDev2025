@@ -30,7 +30,6 @@ public class GameplayScreen extends Screen {
     private ParseLevel.LevelData currentLevel;
     private EntityManager entityManager;
     private Map<Character, EntityBlueprint> charMap;
-    private int currentLevelIndex = 0;
     private ControlConfiguration controlConfiguration;
     private final Map<String, Color> textureTints = new HashMap<>();
     private Set<Integer> keysPressedLastFrame = new HashSet<>();
@@ -44,15 +43,17 @@ public class GameplayScreen extends Screen {
     private ParticleManager particleManager;
     private Set<Integer> previousYouEntities = new HashSet<>();
     private Set<Integer> previousWinEntities = new HashSet<>();
-    private MenuScreen mainMenu;
+    private MenuScreen levelMenu;
     private SoundManager soundManager;
     private Sound moveSound;
     private Sound winSound;
     private Sound isWinSound;
+    private boolean levelOver;
+    private double pauseTime;
 
-    public GameplayScreen(Graphics2D graphics, MenuScreen mainMenu, ControlConfiguration controlConfiguration) {
+    public GameplayScreen(Graphics2D graphics, MenuScreen levelMenu, ControlConfiguration controlConfiguration) {
         super(graphics);
-        this.mainMenu = mainMenu;
+        this.levelMenu = levelMenu;
         this.charMap = new HashMap<>();
         this.entityManager = new EntityManager(this);
         this.ruleSystem = new RuleSystem(entityManager);
@@ -74,10 +75,6 @@ public class GameplayScreen extends Screen {
         isWinSound = soundManager.load("isWin", "resources/audio/isWin.ogg", false);
     }
 
-    public KeyboardHandler getKeyboardHandler() {
-        return keyboardHandler;
-    }
-
     private void loadLevels() {
         ParseLevel parser = new ParseLevel();
         levels = parser.parseLevels("resources/levels/levels-all.bbiy");
@@ -90,6 +87,8 @@ public class GameplayScreen extends Screen {
 
     private void setLevel(ParseLevel.LevelData level) {
         this.currentLevel = level;
+        pauseTime = 0;
+        levelOver = false;
         this.tileWidth = width / currentLevel.width;
         this.tileHeight = height / currentLevel.height;
         entityManager.clear();
@@ -102,7 +101,7 @@ public class GameplayScreen extends Screen {
     }
 
     public void setLevel(int levelIndex) {
-        currentLevelIndex = levelIndex;
+        nextScreen = this;
         setLevel(levels.get(levelIndex));
     }
 
@@ -110,17 +109,10 @@ public class GameplayScreen extends Screen {
         return levels.size();
     }
 
-    private void loadNextLevel() {
-        currentLevelIndex++;
-        if (currentLevelIndex < levels.size()) {
-            setLevel(levels.get(currentLevelIndex));
-        } else {
-            setNextScreen(mainMenu);
-        }
-    }
-
     private void resetLevel() {
-        setLevel(levels.get(currentLevelIndex));
+        entityManager.restoreState(undoStack.getFirst());
+        undoStack.clear();
+        undoStack.push(entityManager.saveState());
     }
 
     private void loadLevelEntities() {
@@ -289,12 +281,6 @@ public class GameplayScreen extends Screen {
     private void handleMovement(int dx, int dy) {
         Set<Integer> youEntities = conditionSystem.getYouEntities();
         if (youEntities.isEmpty()) return;
-//        for (int id : youEntities) {
-//            String name = entityManager.getEntityName(id);
-//            Set<String> props = ruleSystem.activeRules.getOrDefault(name, new HashSet<>());
-//            System.out.println("You entity " + name + " has properties: " + props);
-//        }
-//        System.out.println("Active rules: " + ruleSystem.activeRules);
         GameState currentState = entityManager.saveState();
         undoStack.push(currentState);
 
@@ -337,20 +323,22 @@ public class GameplayScreen extends Screen {
                 PositionComponent pos = entityManager.getComponent(id, PositionComponent.class);
                 if (pos != null) {
                     particleManager.createSparkleEffect(pos.x, pos.y);
-                    if (!isWinSound.isPlaying()) {
-                        isWinSound.play();
+                    if (isWinSound.isPlaying()) {
+                        isWinSound.stop();
                     }
+                    isWinSound.play();
                 }
             }
 
             int condition = conditionSystem.checkConditions();
             if (condition == 1) {
-                System.out.println("Victory!");
-                particleManager.createFireworks();
-                if (!winSound.isPlaying()) {
-                    winSound.play();
+                particleManager.createFireworks(width, height);
+                if (winSound.isPlaying()) {
+                    winSound.stop();
                 }
-                loadNextLevel();
+                levelOver = true;
+                pauseTime = 2.25;
+                winSound.play();
             }
         } else {
             undoStack.pop();
@@ -408,24 +396,34 @@ public class GameplayScreen extends Screen {
 
     @Override
     public void processInput() {
-        Set<Integer> prevFrame = keysPressedLastFrame;
-        keysPressedLastFrame = new HashSet<>();
-        for (Integer key : controlConfiguration.getKeys()) {
-            if (glfwGetKey(graphics.getWindow(), key) == GLFW_PRESS) {
-                if (!prevFrame.contains(key)) {
-                    controlActions.get(controlConfiguration.getAction(key)).run(0);
+        if (!levelOver) {
+            Set<Integer> prevFrame = keysPressedLastFrame;
+            keysPressedLastFrame = new HashSet<>();
+            for (Integer key : controlConfiguration.getKeys()) {
+                if (glfwGetKey(graphics.getWindow(), key) == GLFW_PRESS) {
+                    if (!prevFrame.contains(key)) {
+                        controlActions.get(controlConfiguration.getAction(key)).run(0);
+                    }
+                    keysPressedLastFrame.add(key);
                 }
-                keysPressedLastFrame.add(key);
             }
         }
     }
 
     @Override
     public void screenUpdate(double elapsedTime) {
-        for (int entityId : entityManager.getAllEntityIds()) {
-            SpriteComponent sprite = entityManager.getComponent(entityId, SpriteComponent.class);
-            if (sprite != null) {
-                sprite.update();
+        if (!levelOver) {
+            for (int entityId : entityManager.getAllEntityIds()) {
+                SpriteComponent sprite = entityManager.getComponent(entityId, SpriteComponent.class);
+                if (sprite != null) {
+                    sprite.update();
+                }
+            }
+        } else {
+            pauseTime -= elapsedTime;
+            if (pauseTime <= 0) {
+                nextScreen = levelMenu;
+                particleManager.clear();
             }
         }
         particleManager.update(elapsedTime);
@@ -444,7 +442,8 @@ public class GameplayScreen extends Screen {
             int z2 = s2 != null ? s2.getZIndex() : 0;
             return Integer.compare(z1, z2);
         });
-
+        Set<Integer> youEntities = conditionSystem.getYouEntities();
+        Set<String> pushableNames = getNamesWithProperty("Push");
         for (int entityId : entities) {
             if (entityManager.isEntityActive(entityId)) {
                 PositionComponent pos = entityManager.getComponent(entityId, PositionComponent.class);
@@ -452,7 +451,13 @@ public class GameplayScreen extends Screen {
                 if (pos != null && sprite != null) {
                     float ndcX = left + pos.x * tileWidth;
                     float ndcY = top + pos.y * tileHeight;
-                    Rectangle destinationRect = new Rectangle(ndcX, ndcY, tileWidth, tileHeight);
+                    float zIndex = 0;
+                    if (youEntities.contains(entityId)) {
+                        zIndex = 0.85f;
+                    } else if (movementSystem.isPushable(entityId, pushableNames)) {
+                        zIndex = 0.8f;
+                    }
+                    Rectangle destinationRect = new Rectangle(ndcX, ndcY, tileWidth, tileHeight, zIndex);
                     Color tint = textureTints.getOrDefault(sprite.getTexturePath(), Color.WHITE);
                     Texture texture = sprite.getTexture();
                     if (texture != null) {

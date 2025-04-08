@@ -29,7 +29,7 @@ public class ScreenManager {
         MenuScreen controlsScreen = new MenuScreen(graphics);
         ControlConfiguration controlConfiguration = new ControlConfiguration();
         serializer.loadControls(controlConfiguration);
-        GameplayScreen gameplayScreen = new GameplayScreen(graphics, mainMenu, controlConfiguration);
+        GameplayScreen gameplayScreen = new GameplayScreen(graphics, levelSelectionScreen, controlConfiguration);
         MenuScreen creditsScreen = new MenuScreen(graphics);
         mainMenu.addButtons(0.2f, new MenuScreen.ButtonBundle[] {
           new MenuScreen.ButtonBundle("Play", MenuButton.makeCreator((_) -> {
