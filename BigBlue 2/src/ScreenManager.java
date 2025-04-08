@@ -10,6 +10,7 @@ public class ScreenManager {
     private final Graphics2D graphics;
     private Screen currentScreen;
     private final Serializer serializer;
+    ControlConfiguration controlConfiguration = new ControlConfiguration();
 
     public ScreenManager(Graphics2D graphics) {
         serializer = new Serializer();
@@ -27,7 +28,6 @@ public class ScreenManager {
         MenuScreen pauseMenu = new MenuScreen(graphics);
         MenuScreen levelSelectionScreen = new MenuScreen(graphics);
         MenuScreen controlsScreen = new MenuScreen(graphics);
-        ControlConfiguration controlConfiguration = new ControlConfiguration();
         serializer.loadControls(controlConfiguration);
         GameplayScreen gameplayScreen = new GameplayScreen(graphics, levelSelectionScreen, controlConfiguration);
         MenuScreen creditsScreen = new MenuScreen(graphics);
@@ -72,14 +72,14 @@ public class ScreenManager {
 
         controlsScreen.addButtons(0.125f, new MenuScreen.ButtonBundle[]{
                 new MenuScreen.ButtonBundle("Up", ControlButton.makeCreator(ControlConfiguration.Action.UP, controlConfiguration, controlsScreen.getPauseInput())),
-                new MenuScreen.ButtonBundle("Down", ControlButton.makeCreator(ControlConfiguration.Action.DOWN, controlConfiguration, controlsScreen.getPauseInput())),
                 new MenuScreen.ButtonBundle("Left", ControlButton.makeCreator(ControlConfiguration.Action.LEFT, controlConfiguration, controlsScreen.getPauseInput())),
+                new MenuScreen.ButtonBundle("Down", ControlButton.makeCreator(ControlConfiguration.Action.DOWN, controlConfiguration, controlsScreen.getPauseInput())),
                 new MenuScreen.ButtonBundle("Right", ControlButton.makeCreator(ControlConfiguration.Action.RIGHT, controlConfiguration, controlsScreen.getPauseInput())),
                 new MenuScreen.ButtonBundle("Undo", ControlButton.makeCreator(ControlConfiguration.Action.UNDO, controlConfiguration, controlsScreen.getPauseInput())),
                 new MenuScreen.ButtonBundle("Restart", ControlButton.makeCreator(ControlConfiguration.Action.RESTART, controlConfiguration, controlsScreen.getPauseInput())),
                 new MenuScreen.ButtonBundle("Back", MenuButton.makeCreator((_) -> {serializer.saveControls(controlConfiguration); controlsScreen.setNextScreen(controlsScreen.getBackScreen());}))
         });
-        gameplayScreen.forceAction(GLFW_KEY_ESCAPE, (_) -> {serializer.saveControls(controlConfiguration); controlsScreen.setNextScreen(controlsScreen.getBackScreen());});
+        controlsScreen.forceAction(GLFW_KEY_ESCAPE, (_) -> {serializer.saveControls(controlConfiguration); controlsScreen.setNextScreen(controlsScreen.getBackScreen());});
 
         creditsScreen.addButtons(0.25f, new MenuScreen.ButtonBundle[]{
                 new MenuScreen.ButtonBundle("Back", MenuButton.makeCreator((_) -> creditsScreen.setNextScreen(creditsScreen.getBackScreen())))
@@ -106,6 +106,7 @@ public class ScreenManager {
     }
 
     public void shutdown() {
+        serializer.saveControls(controlConfiguration);
         serializer.shutdown();
     }
 

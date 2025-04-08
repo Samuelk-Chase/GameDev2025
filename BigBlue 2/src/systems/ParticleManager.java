@@ -92,7 +92,6 @@ public class ParticleManager {
         float right = left + tileWidth;
         float top = bottom + tileHeight;
 
-        System.out.println("What");
         Texture star = new Texture("resources/images/star.png");
 
         float offset = -0.005f;
