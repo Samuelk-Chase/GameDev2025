@@ -134,10 +134,6 @@ public class MovementSystem {
             for (int id : new ArrayList<>(entities)) {
                 if (entityManager.getComponent(id, RuleComponent.class) == null &&
                         DESTRUCTIBLE_NAMES.contains(entityManager.getEntityName(id))) {
-                    PositionComponent pos = entityManager.getComponent(id, PositionComponent.class);
-                    if (pos != null && particleManager != null) {
-                        particleManager.createSparkleEffect(pos.x, pos.y);
-                    }
                     entityManager.destroyEntity(id);
                 }
             }

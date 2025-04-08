@@ -88,9 +88,9 @@ public class MenuScreen extends Screen {
         }
         for (int i = 0; i < buttons.size(); i++) {
             if (i == buttonIndex) {
-                buttons.get(i).render(Button.highlightColor, SELECTED_TEXT_COLOR);
+                buttons.get(i).render(SELECTED_TEXT_COLOR);
             } else {
-                buttons.get(i).render(Button.backgroundColor, NORMAL_TEXT_COLOR);
+                buttons.get(i).render(NORMAL_TEXT_COLOR);
             }
         }
     }

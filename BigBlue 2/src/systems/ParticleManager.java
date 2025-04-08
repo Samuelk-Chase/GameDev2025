@@ -25,17 +25,25 @@ public class ParticleManager {
 
     /** Creates a particle effect for object destruction, originating from the tile's center. */
     public void createDestructionEffect(float gridX, float gridY) {
-        float ndcX = gridLeft + (gridX + 0.5f) * tileWidth;
-        float ndcY = gridBottom + (gridY + 0.5f) * tileHeight;
+        float x = gridLeft + (gridX + 0.5f) * tileWidth;
+        float y = gridBottom + (gridY + 0.5f) * tileHeight;
+        Texture skull = new Texture("resources/images/skull.png");
         ParticleEmitter emitter = new ParticleEmitter(particleSizeNDC);
-        emitter.emit(
-                ndcX, ndcY,
-                90,
-                Color.BLACK,
-                0.5f,
-                0.7f,
-                0, 0
-        );
+        Random random = new Random();
+        int particleCount = (int) random.nextGaussian(4, 1);
+        for (int i = 0; i < particleCount; i++) {
+            float velocity = (float) random.nextGaussian(0.02, 0.01);
+            float size = (float) random.nextGaussian(tileWidth / 3f, tileWidth / 15f);
+            if (size < 0) {
+                size = -size + 0.01f;
+            }
+            double angle = random.nextDouble(0,2 * Math.PI);
+            float vx = (float) (Math.cos(angle) * velocity);
+            float vy = (float) (Math.sin(angle) * velocity);
+            float lifeTime = (float) random.nextGaussian(1.75, 0.25);
+            Color color = new Color(random.nextFloat(0.5f, 0.9f), random.nextFloat(0f, 0.2f), random.nextFloat(0f, 0.2f));
+            emitter.addParticle(x, y, vx, vy, 0, 0, color, lifeTime, skull, size);
+        }
         emitters.add(emitter);
     }
 
@@ -84,6 +92,7 @@ public class ParticleManager {
         float right = left + tileWidth;
         float top = bottom + tileHeight;
 
+        System.out.println("What");
         Texture star = new Texture("resources/images/star.png");
 
         float offset = -0.005f;
