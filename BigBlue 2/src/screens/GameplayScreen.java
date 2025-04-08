@@ -44,12 +44,13 @@ public class GameplayScreen extends Screen {
     private Set<Integer> previousYouEntities = new HashSet<>();
     private Set<Integer> previousWinEntities = new HashSet<>();
     private MenuScreen levelMenu;
-    private SoundManager soundManager;
-    private Sound moveSound;
-    private Sound winSound;
-    private Sound isWinSound;
+    private final SoundManager soundManager = new SoundManager();
+    private final Sound moveSound = soundManager.load("move", "resources/audio/move.ogg", false);
+    private final Sound winSound = soundManager.load("win", "resources/audio/win.ogg", false);
+    private final Sound isWinSound = soundManager.load("isWin", "resources/audio/isWin.ogg", false);
     private boolean levelOver;
     private double pauseTime;
+    private final Sound backgroundMusic = soundManager.load("music", "resources/audio/backgroundMusic.ogg", true);
 
     public GameplayScreen(Graphics2D graphics, MenuScreen levelMenu, ControlConfiguration controlConfiguration) {
         super(graphics);
@@ -66,13 +67,10 @@ public class GameplayScreen extends Screen {
         controlActions.put(ControlConfiguration.Action.DOWN, (_) -> handleMovement(0, 1));
         controlActions.put(ControlConfiguration.Action.UNDO, (_) -> undo());
         controlActions.put(ControlConfiguration.Action.RESTART, (_) -> resetLevel());
+        backgroundMusic.setGain(0.1f);
         loadLevels();
         initializeCharMap();
         initializeTextureTints();
-        soundManager = new SoundManager();
-        moveSound = soundManager.load("move", "resources/audio/move.ogg", false);
-        winSound = soundManager.load("win", "resources/audio/win.ogg", false);
-        isWinSound = soundManager.load("isWin", "resources/audio/isWin.ogg", false);
     }
 
     private void loadLevels() {
@@ -83,6 +81,14 @@ public class GameplayScreen extends Screen {
         } else {
             System.err.println("No levels found!");
         }
+    }
+
+    public void pauseMusic() {
+        backgroundMusic.pause();
+    }
+
+    public void playMusic() {
+        backgroundMusic.play();
     }
 
     private void setLevel(ParseLevel.LevelData level) {
@@ -103,6 +109,7 @@ public class GameplayScreen extends Screen {
     public void setLevel(int levelIndex) {
         nextScreen = this;
         setLevel(levels.get(levelIndex));
+        backgroundMusic.play();
     }
 
     public int getNumLevels() {
@@ -422,6 +429,7 @@ public class GameplayScreen extends Screen {
         } else {
             pauseTime -= elapsedTime;
             if (pauseTime <= 0) {
+                backgroundMusic.stop();
                 nextScreen = levelMenu;
                 particleManager.clear();
             }

@@ -37,7 +37,6 @@ public class ControlButton extends Button{
 
     private void setKey(Integer newKey) {
         currentKey = newKey;
-        selected = false;
         String keyName = glfwGetKeyName(currentKey, 0);
         text = action + ": " + (keyName != null ? keyName : keyNames.get(currentKey));
         glfwSetKeyCallback(window, null);
@@ -53,11 +52,12 @@ public class ControlButton extends Button{
         screenPauseInput = true;
         glfwSetKeyCallback(window, (long window, int key, int scancode, int action, int mods) -> {
             if (action == GLFW_PRESS) {
-                if (key != GLFW_KEY_ESCAPE && key != GLFW_KEY_ENTER) {
-                    if (controlConfiguration.changeKey(currentKey, key) || key == currentKey) {
+                if (key != GLFW_KEY_ENTER) {
+                    if (key != GLFW_KEY_ESCAPE && controlConfiguration.changeKey(currentKey, key) || key == currentKey) {
                         setKey(key);
                     }
                 screenPauseInput = false;
+                selected = false;
                 }
             }
         });

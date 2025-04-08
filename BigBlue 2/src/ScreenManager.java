@@ -84,8 +84,8 @@ public class ScreenManager {
         creditsScreen.addButtons(0.25f, new MenuScreen.ButtonBundle[]{
                 new MenuScreen.ButtonBundle("Back", MenuButton.makeCreator((_) -> creditsScreen.setNextScreen(creditsScreen.getBackScreen())))
         });
-        pauseMenu.forceAction(GLFW_KEY_ESCAPE, (_) -> pauseMenu.setNextScreen(gameplayScreen));
-        gameplayScreen.forceAction(GLFW_KEY_ESCAPE, (_) -> gameplayScreen.setNextScreen(pauseMenu));
+        pauseMenu.forceAction(GLFW_KEY_ESCAPE, (_) -> {pauseMenu.setNextScreen(gameplayScreen); gameplayScreen.playMusic();});
+        gameplayScreen.forceAction(GLFW_KEY_ESCAPE, (_) -> {gameplayScreen.setNextScreen(pauseMenu); gameplayScreen.pauseMusic();});
     }
 
     public void run() {
