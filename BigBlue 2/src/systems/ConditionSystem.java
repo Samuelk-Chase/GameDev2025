@@ -2,7 +2,6 @@ package systems;
 
 import components.RuleComponent;
 import entities.EntityManager;
-import components.NameComponent;
 import components.PositionComponent;
 
 import java.util.*;
@@ -23,6 +22,8 @@ public class ConditionSystem {
         if (youEntities.isEmpty()) {
             return -1;
         }
+
+
         for (int youId : youEntities) {
             if (entityManager.getComponent(youId, RuleComponent.class) != null) {
                 continue;
@@ -37,16 +38,19 @@ public class ConditionSystem {
                 if (id == youId) continue;
                 String name = entityManager.getEntityName(id);
                 Set<String> props = RuleSystem.activeRules.getOrDefault(name, new HashSet<>());
-                if (props.contains("Kill")) {
+                if (props.contains("Kill") || props.contains("Defeat")) {
                     entityManager.destroyEntity(youId);
                     break;
                 }
             }
         }
+
+
         youEntities = getYouEntities();
         if (youEntities.isEmpty()) {
             return -1;
         }
+
 
         Set<Integer> winEntities = getWinEntities();
         for (int youId : youEntities) {

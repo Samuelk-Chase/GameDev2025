@@ -362,7 +362,7 @@ public class GameplayScreen extends Screen {
         if (movementSystem.tryMove(pos.x, pos.y, dx, dy, pushableNames, youNames)) {
             pos.x = targetX;
             pos.y = targetY;
-            movementSystem.checkAndApplySink(targetX, targetY);
+            movementSystem.checkAndApplySink(entityId,targetX, targetY);
             if (moveSound.isPlaying()) {
                 moveSound.stop();
             }

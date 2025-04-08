@@ -73,9 +73,6 @@ public class RuleSystem {
 
                 if (thirdEntry.getValue() == RuleComponent.Type.PROPERTY) {
                     String property = thirdEntry.getKey();
-                    if (property.equals("Kill") || property.equals("Defeat")) {
-                        property = "Sink";
-                    }
                     activeRules.putIfAbsent(subjEntry.getKey(), new HashSet<>());
                     activeRules.get(subjEntry.getKey()).add(property);
                 } else if (thirdEntry.getValue() == RuleComponent.Type.SUBJECT) {

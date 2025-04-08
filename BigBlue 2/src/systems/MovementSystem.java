@@ -4,7 +4,6 @@ import components.PositionComponent;
 import components.RuleComponent;
 import entities.EntityManager;
 import java.util.*;
-import systems.ParticleManager;
 
 public class MovementSystem {
     private final EntityManager entityManager;
@@ -55,8 +54,6 @@ public class MovementSystem {
     }
 
     private boolean tryPush(int entityId, int dx, int dy, Set<String> pushableNames, Set<String> youNames) {
-//        if (depth > 5) return false;
-
         PositionComponent pos = entityManager.getComponent(entityId, PositionComponent.class);
         if (pos == null) return false;
 
@@ -65,7 +62,6 @@ public class MovementSystem {
         List<Integer> entitiesAtNext = getEntitiesAt(nextX, nextY);
 
         for (int id : entitiesAtNext) {
-//            if (id == entityId) continue;
             String name = entityManager.getEntityName(id);
             if (name.equals("Hedge")) {
                 return false;
@@ -85,7 +81,6 @@ public class MovementSystem {
         }
 
         for (int id : entitiesAtNext) {
-//            if (id == entityId) continue;
             if (isPushable(id, pushableNames)) {
                 if (!tryPush(id, dx, dy, pushableNames, youNames)) {
                     return false;
@@ -95,7 +90,7 @@ public class MovementSystem {
         pos.x = nextX;
         pos.y = nextY;
         if (entityManager.getComponent(entityId, RuleComponent.class) == null) {
-            checkAndApplySink(nextX, nextY);
+            checkAndApplySink(entityId, nextX, nextY);
         }
         return true;
     }
@@ -119,23 +114,32 @@ public class MovementSystem {
         return pushableNames.contains(name);
     }
 
-    public void checkAndApplySink(int x, int y) {
+    public void checkAndApplySink(int moverId, int x, int y) {
         List<Integer> entities = getEntitiesAt(x, y);
         boolean hasSink = false;
+        int sinkId = -1;
+
+
         for (int id : entities) {
+            if (entityManager.getComponent(id, RuleComponent.class) != null) {
+                continue;
+            }
             String name = entityManager.getEntityName(id);
             Set<String> props = RuleSystem.activeRules.getOrDefault(name, new HashSet<>());
             if (props.contains("Sink")) {
                 hasSink = true;
+                sinkId = id;
                 break;
             }
         }
-        if (hasSink) {
-            for (int id : new ArrayList<>(entities)) {
-                if (entityManager.getComponent(id, RuleComponent.class) == null &&
-                        DESTRUCTIBLE_NAMES.contains(entityManager.getEntityName(id))) {
-                    entityManager.destroyEntity(id);
-                }
+
+
+        if (hasSink && moverId != sinkId) {
+            if (entityManager.getComponent(moverId, RuleComponent.class) == null) {
+                entityManager.destroyEntity(moverId);
+            }
+            if (sinkId != -1 && entityManager.getComponent(sinkId, RuleComponent.class) == null) {
+                entityManager.destroyEntity(sinkId);
             }
         }
     }
