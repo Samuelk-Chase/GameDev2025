@@ -1,5 +1,6 @@
 package screens;
 
+import edu.usu.graphics.Color;
 import edu.usu.graphics.Graphics2D;
 import serializer.ControlConfiguration;
 
@@ -16,6 +17,10 @@ public class ControlButton extends Button{
     private final String action;
     private final HashMap<Integer, String> keyNames = new HashMap<>();
     private Boolean screenPauseInput;
+    private Boolean selected = false;
+    private int colorIndex = 0;
+    private int frameCount = 20;
+    private Color[] selectedColors = new Color[]{new Color(168/255f, 166/255f, 50/255f), new Color(200/255f, 200/255f, 100/255f)};
 
     public ControlButton(float x, float y, float width, float height, String action, Graphics2D graphics, Integer key, ControlConfiguration controlConfiguration, Boolean screenPauseInput) {
         super(x, y, width, height, action + ": X", graphics);
@@ -32,6 +37,7 @@ public class ControlButton extends Button{
 
     private void setKey(Integer newKey) {
         currentKey = newKey;
+        selected = false;
         String keyName = glfwGetKeyName(currentKey, 0);
         text = action + ": " + (keyName != null ? keyName : keyNames.get(currentKey));
         glfwSetKeyCallback(window, null);
@@ -43,6 +49,8 @@ public class ControlButton extends Button{
     }
 
     public void click(double elapsedTime) {
+        selected = true;
+        screenPauseInput = true;
         glfwSetKeyCallback(window, (long window, int key, int scancode, int action, int mods) -> {
             if (action == GLFW_PRESS) {
                 if (key != GLFW_KEY_ESCAPE && key != GLFW_KEY_ENTER) {
@@ -53,5 +61,16 @@ public class ControlButton extends Button{
                 }
             }
         });
+    }
+
+    @Override
+    public void render(Color textColor) {
+        if (selected) {
+            colorIndex++;
+            colorIndex %= selectedColors.length * frameCount;
+            super.render(selectedColors[colorIndex / frameCount]);
+        } else {
+            super.render(textColor);
+        }
     }
 }
